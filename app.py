@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 import os
 
-# Page Config and CSS to hide Streamlit branding
+# ---- PAGE CONFIGURATION & CSS FOR MOBILE-APP FEEL ----
 st.set_page_config(page_title="Tesla Laser 4P", layout="wide")
 
 st.markdown("""
@@ -17,11 +17,9 @@ st.markdown("""
 
 st.title("💎 Tesla Laser 4P Management")
 
-# --- DATA STORAGE SETUP ---
+# ---- DATA STORAGE SETUP ----
 # local files to store data
 ENTRIES_FILE = "daily_entries.csv"
-OPERATORS_FILE = "operators.csv"
-PARTIES_FILE = "parties.csv"
 
 # Load or Initialize Data
 def load_data(file_path, columns):
@@ -36,15 +34,20 @@ def save_data(df, file_path):
     df.to_csv(file_path, index=False)
 
 # Initialize DataFrames
-entries_cols = ["Date", "Operator", "Party", "Work Type", "Pcs", "Carats", "Choki", "Operator Rate", "Party Rate", "Operator Amount", "Party Amount"]
+entries_cols = [
+    "Date", "Operator", "Party", "Work Type", 
+    "Pcs", "Carats", "Choki", 
+    "Operator Rate", "Party Rate", 
+    "Operator Amount", "Party Amount"
+]
 df_entries = load_data(ENTRIES_FILE, entries_cols)
 
-# Ensure columns are present
+# Ensure all columns are present
 for col in entries_cols:
     if col not in df_entries.columns:
         df_entries[col] = 0.0 if "Amount" in col or "Rate" in col else ""
 
-# Tabs setup
+# ---- TABS SETUP ----
 tab1, tab2, tab3, tab4 = st.tabs([
     "📝 Rozana Entry", 
     "👷 Operator Accounts (Salary)", 
@@ -52,7 +55,9 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "📅 Monthly Report & Edit/Delete"
 ])
 
+# ==========================================
 # --- TAB 1: ROZANA ENTRY ---
+# ==========================================
 with tab1:
     st.header("Daily Work Entry")
     
@@ -97,7 +102,7 @@ with tab1:
             elif op_rate is None or party_rate is None:
                 st.error("Kripya Operator aur Party dono ka Rate (Bhav) dalein!")
             else:
-                # Calculations
+                # Calculations based on selection
                 multiplier = pcs if work_type == "PC Work" else (carats if work_type == "Carat Work" else choki)
                 op_amount = multiplier * op_rate
                 party_amount = multiplier * party_rate
@@ -120,15 +125,17 @@ with tab1:
                 df_entries = pd.concat([df_entries, pd.DataFrame([new_row])], ignore_index=True)
                 save_data(df_entries, ENTRIES_FILE)
                 
-                # Success Message to avoid double submission
+                # Success Message & Balloons to prevent double click
                 st.success(f"🎉 Success! Entry Saved successfully! (Operator Amount: ₹{op_amount:.2f} | Party Amount: ₹{party_amount:.2f})")
                 st.balloons()
 
+# ==========================================
 # --- TAB 2: OPERATOR ACCOUNTS ---
+# ==========================================
 with tab2:
     st.header("Operator Salary & Khata")
     if not df_entries.empty:
-        operators = df_entries["Operator"].unique()
+        operators = sorted(df_entries["Operator"].unique())
         selected_op = st.selectbox("Select Operator:", operators)
         
         op_data = df_entries[df_entries["Operator"] == selected_op]
@@ -139,11 +146,13 @@ with tab2:
     else:
         st.info("Abhi tak koi entry nahi hui hai.")
 
+# ==========================================
 # --- TAB 3: PARTY ACCOUNTS ---
+# ==========================================
 with tab3:
     st.header("Party Bill & Outstanding")
     if not df_entries.empty:
-        parties = df_entries["Party"].unique()
+        parties = sorted(df_entries["Party"].unique())
         selected_party = st.selectbox("Select Party:", parties)
         
         party_data = df_entries[df_entries["Party"] == selected_party]
@@ -154,20 +163,21 @@ with tab3:
     else:
         st.info("Abhi tak koi entry nahi hui hai.")
 
+# ==========================================
 # --- TAB 4: MONTHLY REPORT & EDIT / DELETE ---
+# ==========================================
 with tab4:
     st.header("All Entries (Edit & Delete Panel)")
     
     if not df_entries.empty:
-        # Sort by date
+        # Sort by date (latest first)
         df_entries = df_entries.sort_values(by="Date", ascending=False).reset_index(drop=True)
         
-        # Display table with index
-        st.write("Niche di gayi list me se jis entry ko badalna ya mitaana hai, uska serial number select karein:")
+        st.write("Niche di gayi list me se jis entry ko badalna ya mitaana hai, uska serial number niche box me select karein:")
         
-        # Show clean display dataframe
+        # Display table with clean 1-based indexing
         display_df = df_entries.copy()
-        display_df.index = display_df.index + 1 # 1-based indexing for users
+        display_df.index = display_df.index + 1
         st.dataframe(display_df)
         
         st.markdown("---")
@@ -178,15 +188,14 @@ with tab4:
             row_to_edit = st.number_input("Edit karne ke liye Serial Number dalein:", min_value=1, max_value=len(df_entries), step=1)
             actual_index = row_to_edit - 1
             
-            # Show current values of selected row
+            # Show current values of selected row to edit
             current_row = df_entries.iloc[actual_index]
-            st.write(f"Selected: {current_row['Operator']} - {current_row['Party']} ({current_row['Date']})")
+            st.info(f"Editing: {current_row['Operator']} ka kaam - {current_row['Party']} ke liye (Tarikh: {current_row['Date']})")
             
             new_op_rate = st.number_input("Naya Operator Rate:", value=float(current_row["Operator Rate"]), key="edit_op_rate")
             new_pt_rate = st.number_input("Naya Party Rate:", value=float(current_row["Party Rate"]), key="edit_pt_rate")
             
             if st.button("Update Entry"):
-                # Recalculate amounts
                 work_type = current_row["Work Type"]
                 multiplier = current_row["Pcs"] if work_type == "PC Work" else (current_row["Carats"] if work_type == "Carat Work" else current_row["Choki"])
                 
@@ -202,9 +211,14 @@ with tab4:
         with col_ed2:
             st.subheader("🗑️ Delete Entry")
             row_to_delete = st.number_input("Delete karne ke liye Serial Number dalein:", min_value=1, max_value=len(df_entries), step=1, key="del_idx")
+            del_actual_index = row_to_delete - 1
+            
+            # Confirm deletion
+            del_row = df_entries.iloc[del_actual_index]
+            st.warning(f"Delete target: {del_row['Operator']} | {del_row['Party']} ({del_row['Date']})")
             
             if st.button("🔴 Confirm Delete", type="primary"):
-                df_entries = df_entries.drop(actual_index).reset_index(drop=True)
+                df_entries = df_entries.drop(del_actual_index).reset_index(drop=True)
                 save_data(df_entries, ENTRIES_FILE)
                 st.success(f"Entry #{row_to_delete} deleted successfully!")
                 st.rerun()
