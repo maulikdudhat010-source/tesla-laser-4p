@@ -136,7 +136,7 @@ def contact_picker_html(key_suffix):
                 
                 if (contacts.length > 0 && contacts[0].tel && contacts[0].tel.length > 0) {{
                     const rawPhone = contacts[0].tel[0];
-                    const cleanPhone = rawPhone.replace(/[^\d]/g, '');
+                    const cleanPhone = rawPhone.replace(/[^\\d]/g, '');
                     status.innerText = "✅ Selected Number: " + cleanPhone + " (Kripya ise copy karke niche Phone Number box me paste karein)";
                     status.style.color = "green";
                 }} else {{
