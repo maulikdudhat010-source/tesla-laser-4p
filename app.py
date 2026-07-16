@@ -8,6 +8,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 import io
+import streamlit.components.v1 as components
 
 # Page Config
 st.set_page_config(page_title="Tesla Laser 4P", page_icon="💎", layout="wide")
@@ -108,6 +109,48 @@ def generate_pdf(df_download, title_text):
     buffer.seek(0)
     return buffer
 
+# Custom Contact Picker Component using HTML5 Contact Picker API
+def contact_picker_html(key_suffix):
+    html_code = f"""
+    <div style="font-family: sans-serif; margin-bottom: 10px;">
+        <button id="pickContactBtn_{key_suffix}" style="background-color: #FF4B4B; color: white; border: none; padding: 8px 16px; font-weight: bold; border-radius: 4px; cursor: pointer; width: 100%;">
+            📇 Select Contact from Mobile
+        </button>
+        <p id="status_{key_suffix}" style="font-size: 12px; color: #555; margin-top: 5px; word-break: break-all;">Mobile contact list kholne ke liye upar click karein.</p>
+    </div>
+    <script>
+        const btn = document.getElementById('pickContactBtn_{key_suffix}');
+        const status = document.getElementById('status_{key_suffix}');
+        
+        btn.addEventListener('click', async () => {{
+            if (!('contacts' in navigator && 'select' in navigator.contacts)) {{
+                status.innerText = "❌ Aapka browser mobile contact picker support nahi karta. Niche haath se number dalein.";
+                status.style.color = "red";
+                return;
+            }}
+            
+            try {{
+                const props = ['tel', 'name'];
+                const opts = {{ multiple: false }};
+                const contacts = await navigator.contacts.select(props, opts);
+                
+                if (contacts.length > 0 && contacts[0].tel && contacts[0].tel.length > 0) {{
+                    const rawPhone = contacts[0].tel[0];
+                    const cleanPhone = rawPhone.replace(/[^\d]/g, '');
+                    status.innerText = "✅ Selected Number: " + cleanPhone + " (Kripya ise copy karke niche Phone Number box me paste karein)";
+                    status.style.color = "green";
+                }} else {{
+                    status.innerText = "⚠️ Koi number select nahi kiya gaya.";
+                }}
+            }} catch (err) {{
+                status.innerText = "Error: " + err.message;
+                status.style.color = "red";
+            }}
+        }});
+    </script>
+    """
+    components.html(html_code, height=90)
+
 # ---- STATE MANAGEMENT ----
 if 'current_screen' not in st.session_state:
     st.session_state.current_screen = "Main Menu"
@@ -118,8 +161,7 @@ if 'success_msg' not in st.session_state:
 # Display sticky success message if it exists
 if st.session_state.success_msg:
     st.success(st.session_state.success_msg)
-    # Clear it so it doesn't linger forever after next action
-    st.session_state.success_msg = ""
+    st.session_state.success_msg = "" # clear
 
 # ==========================================
 # 🏠 SCREEN: MAIN MENU
@@ -154,11 +196,12 @@ elif st.session_state.current_screen == "Office Expense":
     
     with col_inc:
         st.subheader("💰 Office Income (Paisa Aaya)")
+        contact_picker_html("off_inc")
         with st.form("off_inc_f", clear_on_submit=True):
             dt = st.date_input("Date:", datetime.now().date(), key="oi_dt")
             nm = st.text_input("Jis Party Se Paisa Aaya Uska Nam:")
             amt = st.number_input("Amount (Rs):", min_value=0.0, step=10.0, value=None, placeholder="Amount dalein...")
-            ph = st.text_input("Phone Number:", help="Mobile me tap karke auto-suggest select karein", placeholder="Type or select number...")
+            ph = st.text_input("Phone Number:", placeholder="Type or paste number here...")
             rem = st.text_area("Remark / Notes:")
             if st.form_submit_button("Save Income Entry"):
                 if not nm or amt is None: st.error("Nam aur Amount bharein!")
@@ -170,11 +213,12 @@ elif st.session_state.current_screen == "Office Expense":
                     
     with col_exp:
         st.subheader("💸 Office Expense (Paisa Gaya)")
+        contact_picker_html("off_exp")
         with st.form("off_exp_f", clear_on_submit=True):
             dt = st.date_input("Date:", datetime.now().date(), key="oe_dt")
             nm = st.text_input("Jise Paisa De Rahe Hai Uska Nam:")
             amt = st.number_input("Amount (Rs):", min_value=0.0, step=10.0, value=None, placeholder="Amount dalein...")
-            ph = st.text_input("Phone Number:", help="Mobile me tap karke auto-suggest select karein", placeholder="Type or select number...")
+            ph = st.text_input("Phone Number:", placeholder="Type or paste number here...")
             rem = st.text_area("Remark / Notes:")
             if st.form_submit_button("Save Expense Entry"):
                 if not nm or amt is None: st.error("Nam aur Amount bharein!")
@@ -242,11 +286,12 @@ elif st.session_state.current_screen == "Home Expense":
     
     with col_inc:
         st.subheader("💰 Home Income (Paisa Aaya)")
+        contact_picker_html("hm_inc")
         with st.form("hm_inc_f", clear_on_submit=True):
             dt = st.date_input("Date:", datetime.now().date(), key="hmi_dt")
             nm = st.text_input("Kahan Se Paisa Aaya:")
             amt = st.number_input("Amount (Rs):", min_value=0.0, step=10.0, value=None, placeholder="Amount dalein...")
-            ph = st.text_input("Phone Number:", help="Mobile me tap karke auto-suggest select karein", placeholder="Type or select number...")
+            ph = st.text_input("Phone Number:", placeholder="Type or paste number here...")
             rem = st.text_area("Remark / Notes:")
             if st.form_submit_button("Save Income Entry"):
                 if not nm or amt is None: st.error("Nam aur Amount bharein!")
@@ -258,11 +303,12 @@ elif st.session_state.current_screen == "Home Expense":
                     
     with col_exp:
         st.subheader("💸 Home Expense (Paisa Gaya)")
+        contact_picker_html("hm_exp")
         with st.form("hm_exp_f", clear_on_submit=True):
             dt = st.date_input("Date:", datetime.now().date(), key="hme_dt")
             nm = st.text_input("Jise Paisa De Rahe Hai Uska Nam:")
             amt = st.number_input("Amount (Rs):", min_value=0.0, step=10.0, value=None, placeholder="Amount dalein...")
-            ph = st.text_input("Phone Number:", help="Mobile me tap karke auto-suggest select karein", placeholder="Type or select number...")
+            ph = st.text_input("Phone Number:", placeholder="Type or paste number here...")
             rem = st.text_area("Remark / Notes:")
             if st.form_submit_button("Save Expense Entry"):
                 if not nm or amt is None: st.error("Nam aur Amount bharein!")
@@ -375,7 +421,6 @@ elif st.session_state.current_screen == "Operator Party":
 
     st.markdown("---")
     
-    # 2 Entry Panels
     col_ent1, col_ent2 = st.columns(2)
     
     with col_ent1:
@@ -503,7 +548,6 @@ elif st.session_state.current_screen == "Operator Party":
             st.dataframe(df_f_upad[["Date", "Amount", "Payment Mode", "Remark"]])
         else: st.info("Koi upad / advance nahi liya gaya.")
             
-        # Calculation Metrics
         total_salary = df_f_work["Operator Amount"].sum() if not df_f_work.empty else 0.0
         total_upad = df_f_upad["Amount"].sum() if not df_f_upad.empty else 0.0
         net_payable = total_salary - total_upad
