@@ -108,9 +108,18 @@ def generate_pdf(df_download, title_text):
     buffer.seek(0)
     return buffer
 
-# ---- NAVIGATION STATE MANAGEMENT ----
+# ---- STATE MANAGEMENT ----
 if 'current_screen' not in st.session_state:
     st.session_state.current_screen = "Main Menu"
+
+if 'success_msg' not in st.session_state:
+    st.session_state.success_msg = ""
+
+# Display sticky success message if it exists
+if st.session_state.success_msg:
+    st.success(st.session_state.success_msg)
+    # Clear it so it doesn't linger forever after next action
+    st.session_state.success_msg = ""
 
 # ==========================================
 # 🏠 SCREEN: MAIN MENU
@@ -149,15 +158,14 @@ elif st.session_state.current_screen == "Office Expense":
             dt = st.date_input("Date:", datetime.now().date(), key="oi_dt")
             nm = st.text_input("Jis Party Se Paisa Aaya Uska Nam:")
             amt = st.number_input("Amount (Rs):", min_value=0.0, step=10.0, value=None, placeholder="Amount dalein...")
-            ph = st.text_input("Phone Number:")
+            ph = st.text_input("Phone Number:", help="Mobile me tap karke auto-suggest select karein", placeholder="Type or select number...")
             rem = st.text_area("Remark / Notes:")
             if st.form_submit_button("Save Income Entry"):
                 if not nm or amt is None: st.error("Nam aur Amount bharein!")
                 else:
                     df_office = pd.concat([df_office, pd.DataFrame([{"Date": str(dt), "Type": "Income (Aaya)", "Name": nm.strip(), "Amount": amt, "Phone": ph.strip(), "Remark": rem.strip()}])], ignore_index=True)
                     save_data(df_office, OFFICE_FILE)
-                    st.success("🎉 Success! Entry Saved Successfully!")
-                    st.toast("Saved Successfully!")
+                    st.session_state.success_msg = "🎉 Success! Entry Saved Successfully!"
                     st.rerun()
                     
     with col_exp:
@@ -166,15 +174,14 @@ elif st.session_state.current_screen == "Office Expense":
             dt = st.date_input("Date:", datetime.now().date(), key="oe_dt")
             nm = st.text_input("Jise Paisa De Rahe Hai Uska Nam:")
             amt = st.number_input("Amount (Rs):", min_value=0.0, step=10.0, value=None, placeholder="Amount dalein...")
-            ph = st.text_input("Phone Number:")
+            ph = st.text_input("Phone Number:", help="Mobile me tap karke auto-suggest select karein", placeholder="Type or select number...")
             rem = st.text_area("Remark / Notes:")
             if st.form_submit_button("Save Expense Entry"):
                 if not nm or amt is None: st.error("Nam aur Amount bharein!")
                 else:
                     df_office = pd.concat([df_office, pd.DataFrame([{"Date": str(dt), "Type": "Expense (Gaya)", "Name": nm.strip(), "Amount": amt, "Phone": ph.strip(), "Remark": rem.strip()}])], ignore_index=True)
                     save_data(df_office, OFFICE_FILE)
-                    st.success("🎉 Success! Entry Saved Successfully!")
-                    st.toast("Saved Successfully!")
+                    st.session_state.success_msg = "🎉 Success! Entry Saved Successfully!"
                     st.rerun()
 
     st.markdown("---")
@@ -203,14 +210,14 @@ elif st.session_state.current_screen == "Office Expense":
                 df_office.at[idx, "Phone"] = n_ph.strip()
                 df_office.at[idx, "Remark"] = n_rem.strip()
                 save_data(df_office, OFFICE_FILE)
-                st.success("🎉 Success! Entry Updated Successfully!")
+                st.session_state.success_msg = "🎉 Success! Entry Updated Successfully!"
                 st.rerun()
         with col_e2:
             row_del = st.number_input("Delete Serial Number:", min_value=1, max_value=len(df_office), step=1, key="off_del_s")
             if st.button("Confirm Delete Office Entry", type="primary"):
                 df_office = df_office.drop(row_del - 1).reset_index(drop=True)
                 save_data(df_office, OFFICE_FILE)
-                st.success("🎉 Success! Entry Deleted Successfully!")
+                st.session_state.success_msg = "🎉 Success! Entry Deleted Successfully!"
                 st.rerun()
         with col_e3:
             row_wa = st.number_input("WhatsApp Serial Number:", min_value=1, max_value=len(df_office), step=1, key="off_wa_s")
@@ -239,15 +246,14 @@ elif st.session_state.current_screen == "Home Expense":
             dt = st.date_input("Date:", datetime.now().date(), key="hmi_dt")
             nm = st.text_input("Kahan Se Paisa Aaya:")
             amt = st.number_input("Amount (Rs):", min_value=0.0, step=10.0, value=None, placeholder="Amount dalein...")
-            ph = st.text_input("Phone Number:")
+            ph = st.text_input("Phone Number:", help="Mobile me tap karke auto-suggest select karein", placeholder="Type or select number...")
             rem = st.text_area("Remark / Notes:")
             if st.form_submit_button("Save Income Entry"):
                 if not nm or amt is None: st.error("Nam aur Amount bharein!")
                 else:
                     df_home = pd.concat([df_home, pd.DataFrame([{"Date": str(dt), "Type": "Income (Aaya)", "Name": nm.strip(), "Amount": amt, "Phone": ph.strip(), "Remark": rem.strip()}])], ignore_index=True)
                     save_data(df_home, HOME_FILE)
-                    st.success("🎉 Success! Entry Saved Successfully!")
-                    st.toast("Saved Successfully!")
+                    st.session_state.success_msg = "🎉 Success! Entry Saved Successfully!"
                     st.rerun()
                     
     with col_exp:
@@ -256,15 +262,14 @@ elif st.session_state.current_screen == "Home Expense":
             dt = st.date_input("Date:", datetime.now().date(), key="hme_dt")
             nm = st.text_input("Jise Paisa De Rahe Hai Uska Nam:")
             amt = st.number_input("Amount (Rs):", min_value=0.0, step=10.0, value=None, placeholder="Amount dalein...")
-            ph = st.text_input("Phone Number:")
+            ph = st.text_input("Phone Number:", help="Mobile me tap karke auto-suggest select karein", placeholder="Type or select number...")
             rem = st.text_area("Remark / Notes:")
             if st.form_submit_button("Save Expense Entry"):
                 if not nm or amt is None: st.error("Nam aur Amount bharein!")
                 else:
                     df_home = pd.concat([df_home, pd.DataFrame([{"Date": str(dt), "Type": "Expense (Gaya)", "Name": nm.strip(), "Amount": amt, "Phone": ph.strip(), "Remark": rem.strip()}])], ignore_index=True)
                     save_data(df_home, HOME_FILE)
-                    st.success("🎉 Success! Entry Saved Successfully!")
-                    st.toast("Saved Successfully!")
+                    st.session_state.success_msg = "🎉 Success! Entry Saved Successfully!"
                     st.rerun()
 
     st.markdown("---")
@@ -293,14 +298,14 @@ elif st.session_state.current_screen == "Home Expense":
                 df_home.at[idx, "Phone"] = n_ph.strip()
                 df_home.at[idx, "Remark"] = n_rem.strip()
                 save_data(df_home, HOME_FILE)
-                st.success("🎉 Success! Entry Updated Successfully!")
+                st.session_state.success_msg = "🎉 Success! Entry Updated Successfully!"
                 st.rerun()
         with col_e2:
             row_del = st.number_input("Delete Serial Number:", min_value=1, max_value=len(df_home), step=1, key="hm_del_s")
             if st.button("Confirm Delete Home Entry", type="primary"):
                 df_home = df_home.drop(row_del - 1).reset_index(drop=True)
                 save_data(df_home, HOME_FILE)
-                st.success("🎉 Success! Entry Deleted Successfully!")
+                st.session_state.success_msg = "🎉 Success! Entry Deleted Successfully!"
                 st.rerun()
         with col_e3:
             row_wa = st.number_input("WhatsApp Serial Number:", min_value=1, max_value=len(df_home), step=1, key="hm_wa_s")
@@ -342,12 +347,12 @@ elif st.session_state.current_screen == "Operator Party":
                     if not ((df_master['Type'] == 'Operator') & (df_master['Name'] == name_in.strip())).any():
                         df_master = pd.concat([df_master, pd.DataFrame([{"Type": "Operator", "Name": name_in.strip()}])], ignore_index=True)
                         save_data(df_master, OP_PARTY_MASTER_FILE)
-                        st.success("🎉 Success! Entry Saved Successfully!")
+                        st.session_state.success_msg = "🎉 Success! Operator Added Successfully!"
                         st.rerun()
                 elif act == "Remove" and name_in.strip():
                     df_master = df_master[~((df_master['Type'] == 'Operator') & (df_master['Name'] == name_in.strip()))]
                     save_data(df_master, OP_PARTY_MASTER_FILE)
-                    st.success("🎉 Success! Entry Saved Successfully!")
+                    st.session_state.success_msg = "🎉 Success! Operator Removed Successfully!"
                     st.rerun()
                     
     with col_m2:
@@ -360,12 +365,12 @@ elif st.session_state.current_screen == "Operator Party":
                     if not ((df_master['Type'] == 'Party') & (df_master['Name'] == name_in.strip())).any():
                         df_master = pd.concat([df_master, pd.DataFrame([{"Type": "Party", "Name": name_in.strip()}])], ignore_index=True)
                         save_data(df_master, OP_PARTY_MASTER_FILE)
-                        st.success("🎉 Success! Entry Saved Successfully!")
+                        st.session_state.success_msg = "🎉 Success! Party Added Successfully!"
                         st.rerun()
                 elif act == "Remove" and name_in.strip():
                     df_master = df_master[~((df_master['Type'] == 'Party') & (df_master['Name'] == name_in.strip()))]
                     save_data(df_master, OP_PARTY_MASTER_FILE)
-                    st.success("🎉 Success! Entry Saved Successfully!")
+                    st.session_state.success_msg = "🎉 Success! Party Removed Successfully!"
                     st.rerun()
 
     st.markdown("---")
@@ -434,8 +439,7 @@ elif st.session_state.current_screen == "Operator Party":
                     }
                     df_work = pd.concat([df_work, pd.DataFrame([new_row])], ignore_index=True)
                     save_data(df_work, DAILY_WORK_FILE)
-                    st.success("🎉 Success! Entry Saved Successfully!")
-                    st.toast("Saved Successfully!")
+                    st.session_state.success_msg = "🎉 Success! Work Entry Saved Successfully!"
                     st.rerun()
 
     with col_ent2:
@@ -474,8 +478,7 @@ elif st.session_state.current_screen == "Operator Party":
                     }
                     df_upad = pd.concat([df_upad, pd.DataFrame([new_upad])], ignore_index=True)
                     save_data(df_upad, OP_UPAD_FILE)
-                    st.success("🎉 Success! Entry Saved Successfully!")
-                    st.toast("Saved Successfully!")
+                    st.session_state.success_msg = "🎉 Success! Upad Entry Saved Successfully!"
                     st.rerun()
 
     st.markdown("---")
@@ -538,14 +541,14 @@ elif st.session_state.current_screen == "Operator Party":
                 df_work.at[idx_w, "Operator Amount"] = mult * n_op_r
                 df_work.at[idx_w, "Party Amount"] = mult * n_pt_r
                 save_data(df_work, DAILY_WORK_FILE)
-                st.success("🎉 Success! Entry Saved Successfully!")
+                st.session_state.success_msg = "🎉 Success! Work Entry Updated Successfully!"
                 st.rerun()
         with c_ed2:
             row_d = st.number_input("Delete Serial Number:", min_value=1, max_value=len(df_work), step=1, key="w_del")
             if st.button("Confirm Delete Work Row", type="primary"):
                 df_work = df_work.drop(row_d - 1).reset_index(drop=True)
                 save_data(df_work, DAILY_WORK_FILE)
-                st.success("🎉 Success! Entry Saved Successfully!")
+                st.session_state.success_msg = "🎉 Success! Work Entry Deleted Successfully!"
                 st.rerun()
         
     elif sub_rep == "Full Upad Panel" and not df_upad.empty:
@@ -553,3 +556,24 @@ elif st.session_state.current_screen == "Operator Party":
         display_df = df_upad.copy()
         display_df.index = display_df.index + 1
         st.dataframe(display_df)
+        
+        c_u_ed1, c_u_ed2 = st.columns(2)
+        with c_u_ed1:
+            row_u_e = st.number_input("Edit Upad Serial Number:", min_value=1, max_value=len(df_upad), step=1, key="u_ed")
+            idx_u = row_u_e - 1
+            curr_u = df_upad.iloc[idx_u]
+            n_u_amt = st.number_input("Naya Upad Amount:", value=float(curr_u["Amount"]))
+            n_u_rem = st.text_area("Naya Upad Remark:", value=str(curr_u["Remark"]))
+            if st.button("Update Upad Values"):
+                df_upad.at[idx_u, "Amount"] = n_u_amt
+                df_upad.at[idx_u, "Remark"] = n_u_rem.strip()
+                save_data(df_upad, OP_UPAD_FILE)
+                st.session_state.success_msg = "🎉 Success! Upad Entry Updated Successfully!"
+                st.rerun()
+        with c_u_ed2:
+            row_u_d = st.number_input("Delete Upad Serial Number:", min_value=1, max_value=len(df_upad), step=1, key="u_del")
+            if st.button("Confirm Delete Upad Row", type="primary"):
+                df_upad = df_upad.drop(row_u_d - 1).reset_index(drop=True)
+                save_data(df_upad, OP_UPAD_FILE)
+                st.session_state.success_msg = "🎉 Success! Upad Entry Deleted Successfully!"
+                st.rerun()
