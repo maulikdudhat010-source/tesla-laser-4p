@@ -13,6 +13,15 @@ import streamlit.components.v1 as components
 # Page Config
 st.set_page_config(page_title="Tesla Laser 4P", page_icon="💎", layout="wide")
 
+# ---- INITIAL STATE MANAGEMENT (CRITICAL FIX FOR ERRORS) ----
+if 'current_screen' not in st.session_state: st.session_state.current_screen = "Main Menu"
+if 'success_msg' not in st.session_state: st.session_state.success_msg = ""
+if 'sel_op' not in st.session_state: st.session_state.sel_op = ""
+if 'sel_pt' not in st.session_state: st.session_state.sel_pt = ""
+if 'sel_wt' not in st.session_state: st.session_state.sel_wt = "PC"
+if 'sel_u_op' not in st.session_state: st.session_state.sel_u_op = ""
+if 'sel_pm' not in st.session_state: st.session_state.sel_pm = "Cash"
+
 # ADVANCED CSS: Hide Streamlit watermarks and custom button styles
 st.markdown("""
     <style>
@@ -151,13 +160,6 @@ def contact_picker_html(key_suffix):
     """
     components.html(html_code, height=90)
 
-# ---- STATE MANAGEMENT ----
-if 'current_screen' not in st.session_state:
-    st.session_state.current_screen = "Main Menu"
-
-if 'success_msg' not in st.session_state:
-    st.session_state.success_msg = ""
-
 # Display success message if it exists
 if st.session_state.success_msg:
     st.success(st.session_state.success_msg)
@@ -225,36 +227,4 @@ elif st.session_state.current_screen == "Office Expense":
                 else:
                     df_office = pd.concat([df_office, pd.DataFrame([{"Date": str(dt), "Type": "Expense (Gaya)", "Name": nm.strip(), "Amount": amt, "Phone": ph.strip(), "Remark": rem.strip()}])], ignore_index=True)
                     save_data(df_office, OFFICE_FILE)
-                    st.session_state.success_msg = "🎉 Success! Entry Saved Successfully!"
-                    st.rerun()
-
-    st.markdown("---")
-    st.subheader("📅 Office Monthly Report")
-    if not df_office.empty:
-        df_office = df_office.sort_values(by="Date", ascending=False).reset_index(drop=True)
-        display_df = df_office.copy()
-        display_df.index = display_df.index + 1
-        st.dataframe(display_df[["Date", "Type", "Name", "Amount", "Phone", "Remark"]])
-        
-        pdf_data = generate_pdf(display_df[["Date", "Type", "Name", "Amount", "Phone", "Remark"]], "Office Income & Expense Report")
-        st.download_button("📥 Download Report PDF", data=pdf_data, file_name="Office_Expense_Report.pdf", mime="application/pdf")
-        
-        col_e1, col_e2, col_e3 = st.columns(3)
-        with col_e1:
-            row_ed = st.number_input("Edit Serial Number:", min_value=1, max_value=len(df_office), step=1, key="off_ed_s")
-            idx = row_ed - 1
-            curr = df_office.iloc[idx]
-            n_name = st.text_input("Naya Nam:", value=str(curr["Name"]), key="off_en")
-            n_amt = st.number_input("Naya Amount:", value=float(curr["Amount"]), key="off_ea")
-            n_ph = st.text_input("Naya Phone:", value=str(curr["Phone"]), key="off_eph")
-            n_rem = st.text_area("Naya Remark:", value=str(curr["Remark"]), key="off_er")
-            if st.button("Update Entry"):
-                df_office.at[idx, "Name"] = n_name.strip()
-                df_office.at[idx, "Amount"] = n_amt
-                df_office.at[idx, "Phone"] = n_ph.strip()
-                df_office.at[idx, "Remark"] = n_rem.strip()
-                save_data(df_office, OFFICE_FILE)
-                st.session_state.success_msg = "🎉 Success! Entry Updated Successfully!"
-                st.rerun()
-        with col_e2:
-            row_del = st.number_input("Delete Serial Number:", min_value=1, max_value=len(df_office), step
+                    st.session_state.success_msg = "🎉 Success! Entry
