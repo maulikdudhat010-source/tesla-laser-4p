@@ -18,21 +18,23 @@ st.markdown("""
     footer {visibility: hidden;}
     header {visibility: hidden;}
     .stAppDeployButton {display: none;}
-    div.stButton > button:first-child {
-        background-color: #f0f2f6;
-        color: #31333F;
-        border: 1px solid #d3d6df;
-        width: 100%;
-        font-weight: bold;
+    
+    /* Custom style to make main landing buttons look huge and professional */
+    .main-btn button {
+        height: 80px !important;
+        font-size: 20px !important;
+        background-color: #1A365D !important;
+        color: white !important;
+        border-radius: 10px !important;
+        margin-bottom: 15px !important;
     }
-    div.stButton > button:hover {
-        background-color: #e0e4ec;
-        border-color: #a3a8b4;
+    
+    /* Custom style for other normal buttons */
+    div.stButton > button {
+        font-weight: bold;
     }
     </style>
     """, unsafe_allow_html=True)
-
-st.title("💎 Tesla Laser 4P Management System")
 
 # ---- FILE STORAGE NAMES ----
 OFFICE_FILE = "office_expenses.csv"
@@ -59,12 +61,6 @@ df_home = load_data(HOME_FILE, ["Date", "Type", "Name", "Amount", "Phone", "Rema
 
 work_cols = ["Date", "Operator", "Party", "Work Type", "Pcs", "Carats", "Choki", "Operator Rate", "Party Rate", "Operator Amount", "Party Amount"]
 df_work = load_data(DAILY_WORK_FILE, work_cols)
-
-# Sidebar Main Navigation Options
-main_option = st.sidebar.radio(
-    "Select Section / Report:",
-    ["(1) Office Expense Report", "(2) Home Expenses Report", "(3) Operator aur Party Account"]
-)
 
 def get_whatsapp_link(phone, message):
     if not phone:
@@ -111,8 +107,40 @@ def generate_pdf(df_download, title_text):
     buffer.seek(0)
     return buffer
 
-# --- OFFICE EXPENSES ---
-if main_option == "(1) Office Expense Report":
+# ---- NAVIGATION STATE MANAGEMENT ----
+if 'current_screen' not in st.session_state:
+    st.session_state.current_screen = "Main Menu"
+
+# ==========================================
+# 🏠 SCREEN: MAIN MENU
+# ==========================================
+if st.session_state.current_screen == "Main Menu":
+    st.title("💎 Tesla Laser 4P Management System")
+    st.subheader("Welcome! Kripya neeche diye gaye options me se select karein:")
+    st.write("---")
+    
+    # 3 Big Menu Buttons
+    if st.button("🏢 (1) Office Expense Report", key="menu_off", use_container_width=True):
+        st.session_state.current_screen = "Office Expense"
+        st.rerun()
+        
+    if st.button("🏡 (2) Home Expenses Report", key="menu_hm", use_container_width=True):
+        st.session_state.current_screen = "Home Expense"
+        st.rerun()
+        
+    if st.button("👷 (3) Operator aur Party Account", key="menu_op_pt", use_container_width=True):
+        st.session_state.current_screen = "Operator Party"
+        st.rerun()
+
+# ==========================================
+# 🏢 SCREEN: OFFICE EXPENSE REPORT
+# ==========================================
+elif st.session_state.current_screen == "Office Expense":
+    # Back Button
+    if st.button("⬅️ Go Back to Main Menu", type="secondary"):
+        st.session_state.current_screen = "Main Menu"
+        st.rerun()
+        
     st.header("🏢 Office Income & Expense Report")
     col_inc, col_exp = st.columns(2)
     
@@ -195,8 +223,15 @@ if main_option == "(1) Office Expense Report":
             else: st.info("No phone number.")
     else: st.info("No entries.")
 
-# --- HOME EXPENSES ---
-elif main_option == "(2) Home Expenses Report":
+# ==========================================
+# 🏡 SCREEN: HOME EXPENSES REPORT
+# ==========================================
+elif st.session_state.current_screen == "Home Expense":
+    # Back Button
+    if st.button("⬅️ Go Back to Main Menu", type="secondary"):
+        st.session_state.current_screen = "Main Menu"
+        st.rerun()
+        
     st.header("🏡 Home Income & Expense Report")
     col_inc, col_exp = st.columns(2)
     
@@ -279,8 +314,15 @@ elif main_option == "(2) Home Expenses Report":
             else: st.info("No phone number.")
     else: st.info("No entries.")
 
-# --- OPERATOR AND PARTY ACCOUNT ---
-else:
+# ==========================================
+# 👷 SCREEN: OPERATOR AND PARTY ACCOUNT
+# ==========================================
+elif st.session_state.current_screen == "Operator Party":
+    # Back Button
+    if st.button("⬅️ Go Back to Main Menu", type="secondary"):
+        st.session_state.current_screen = "Main Menu"
+        st.rerun()
+        
     st.header("👷 Operator & Party Account Module")
     
     if 'sel_op' not in st.session_state: st.session_state.sel_op = ""
