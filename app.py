@@ -9,24 +9,25 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 import io
 
-# Page Config and Mobile-App View Styling
-st.set_page_config(page_title="Tesla Laser 4P", layout="wide")
+# Page Config - Isme hum Diamond ka Emoji laga rahe hain jo app icon ki tarah dikhega
+st.set_page_config(page_title="Tesla Laser 4P", page_icon="💎", layout="wide")
 
+# ADVANCED CSS: Upar-niche ka sabhi watermark, footer, header aur extra space hatane ke liye
 st.markdown("""
     <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    .stAppDeployButton {display: none;}
+    /* Hide Streamlit elements completely */
+    #MainMenu {visibility: hidden !important;}
+    footer {visibility: hidden !important;}
+    header {visibility: hidden !important;}
+    .stAppDeployButton {display: none !important;}
+    [data-testid="stHeader"] {display: none !important;}
+    [data-testid="stFooter"] {display: none !important;}
+    [data-testid="stToolbar"] {display: none !important;}
     
-    /* Custom style to make main landing buttons look huge and professional */
-    .main-btn button {
-        height: 80px !important;
-        font-size: 20px !important;
-        background-color: #1A365D !important;
-        color: white !important;
-        border-radius: 10px !important;
-        margin-bottom: 15px !important;
+    /* Clean Top Margins for App View */
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
     }
     
     /* Custom style for other normal buttons */
@@ -115,7 +116,7 @@ if 'current_screen' not in st.session_state:
 # 🏠 SCREEN: MAIN MENU
 # ==========================================
 if st.session_state.current_screen == "Main Menu":
-    st.title("💎 Tesla Laser 4P Management System")
+    st.title("💎 Tesla Laser 4P Management")
     st.subheader("Welcome! Kripya neeche diye gaye options me se select karein:")
     st.write("---")
     
@@ -136,7 +137,6 @@ if st.session_state.current_screen == "Main Menu":
 # 🏢 SCREEN: OFFICE EXPENSE REPORT
 # ==========================================
 elif st.session_state.current_screen == "Office Expense":
-    # Back Button
     if st.button("⬅️ Go Back to Main Menu", type="secondary"):
         st.session_state.current_screen = "Main Menu"
         st.rerun()
@@ -157,8 +157,7 @@ elif st.session_state.current_screen == "Office Expense":
                 else:
                     df_office = pd.concat([df_office, pd.DataFrame([{"Date": str(dt), "Type": "Income (Aaya)", "Name": nm.strip(), "Amount": amt, "Phone": ph.strip(), "Remark": rem.strip()}])], ignore_index=True)
                     save_data(df_office, OFFICE_FILE)
-                    st.success("🎉 Success! Income Entry Saved Successfully!")
-                    st.balloons()
+                    st.success("🎉 Success! Income Entry Saved!")
                     st.rerun()
                     
     with col_exp:
@@ -174,8 +173,7 @@ elif st.session_state.current_screen == "Office Expense":
                 else:
                     df_office = pd.concat([df_office, pd.DataFrame([{"Date": str(dt), "Type": "Expense (Gaya)", "Name": nm.strip(), "Amount": amt, "Phone": ph.strip(), "Remark": rem.strip()}])], ignore_index=True)
                     save_data(df_office, OFFICE_FILE)
-                    st.success("🎉 Success! Expense Entry Saved Successfully!")
-                    st.balloons()
+                    st.success("🎉 Success! Expense Entry Saved!")
                     st.rerun()
 
     st.markdown("---")
@@ -227,7 +225,6 @@ elif st.session_state.current_screen == "Office Expense":
 # 🏡 SCREEN: HOME EXPENSES REPORT
 # ==========================================
 elif st.session_state.current_screen == "Home Expense":
-    # Back Button
     if st.button("⬅️ Go Back to Main Menu", type="secondary"):
         st.session_state.current_screen = "Main Menu"
         st.rerun()
@@ -248,8 +245,7 @@ elif st.session_state.current_screen == "Home Expense":
                 else:
                     df_home = pd.concat([df_home, pd.DataFrame([{"Date": str(dt), "Type": "Income (Aaya)", "Name": nm.strip(), "Amount": amt, "Phone": ph.strip(), "Remark": rem.strip()}])], ignore_index=True)
                     save_data(df_home, HOME_FILE)
-                    st.success("🎉 Success! Income Entry Saved Successfully!")
-                    st.balloons()
+                    st.success("🎉 Success! Income Entry Saved!")
                     st.rerun()
                     
     with col_exp:
@@ -265,8 +261,7 @@ elif st.session_state.current_screen == "Home Expense":
                 else:
                     df_home = pd.concat([df_home, pd.DataFrame([{"Date": str(dt), "Type": "Expense (Gaya)", "Name": nm.strip(), "Amount": amt, "Phone": ph.strip(), "Remark": rem.strip()}])], ignore_index=True)
                     save_data(df_home, HOME_FILE)
-                    st.success("🎉 Success! Expense Entry Saved Successfully!")
-                    st.balloons()
+                    st.success("🎉 Success! Expense Entry Saved!")
                     st.rerun()
 
     st.markdown("---")
@@ -318,7 +313,6 @@ elif st.session_state.current_screen == "Home Expense":
 # 👷 SCREEN: OPERATOR AND PARTY ACCOUNT
 # ==========================================
 elif st.session_state.current_screen == "Operator Party":
-    # Back Button
     if st.button("⬅️ Go Back to Main Menu", type="secondary"):
         st.session_state.current_screen = "Main Menu"
         st.rerun()
@@ -402,7 +396,6 @@ elif st.session_state.current_screen == "Operator Party":
     with st.form("save_work_form", clear_on_submit=True):
         w_dt = st.date_input("Date:")
         
-        # Quantity block
         qty = 0
         if st.session_state.sel_wt == "PC":
             qty = st.number_input("Number of PC:", min_value=0, value=0, step=1)
@@ -434,12 +427,11 @@ elif st.session_state.current_screen == "Operator Party":
                 }
                 df_work = pd.concat([df_work, pd.DataFrame([new_row])], ignore_index=True)
                 save_data(df_work, DAILY_WORK_FILE)
-                st.success(f"🎉 Success! Entry Saved! Op Total: ₹{op_amt:.2f} | Party Total: ₹{pt_amt:.2f}")
-                st.balloons()
+                st.success(f"🎉 Success! Entry Saved!")
                 st.rerun()
 
     st.markdown("---")
-    st.subheader("📅 Operator & Party Reports & Management")
+    st.subheader("📅 Operator & Party Reports")
     sub_rep = st.radio("Select View:", ["Operator Salary Table", "Party Outstanding Table", "All Entries Panel"])
     
     if sub_rep == "Operator Salary Table" and not df_work.empty:
