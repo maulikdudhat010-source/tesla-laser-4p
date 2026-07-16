@@ -187,6 +187,40 @@ elif st.session_state.current_screen == "Office Expense":
         
         pdf_data = generate_pdf(display_df[["Date", "Type", "Name", "Amount", "Phone", "Remark"]], "Office Income & Expense Report")
         st.download_button("📥 Download Report PDF", data=pdf_data, file_name="Office_Expense_Report.pdf", mime="application/pdf")
+        
+        col_e1, col_e2, col_e3 = st.columns(3)
+        with col_e1:
+            row_ed = st.number_input("Edit Serial Number:", min_value=1, max_value=len(df_office), step=1, key="off_ed_s")
+            idx = row_ed - 1
+            curr = df_office.iloc[idx]
+            n_name = st.text_input("Naya Nam:", value=str(curr["Name"]), key="off_en")
+            n_amt = st.number_input("Naya Amount:", value=float(curr["Amount"]), key="off_ea")
+            n_ph = st.text_input("Naya Phone:", value=str(curr["Phone"]), key="off_eph")
+            n_rem = st.text_area("Naya Remark:", value=str(curr["Remark"]), key="off_er")
+            if st.button("Update Entry"):
+                df_office.at[idx, "Name"] = n_name.strip()
+                df_office.at[idx, "Amount"] = n_amt
+                df_office.at[idx, "Phone"] = n_ph.strip()
+                df_office.at[idx, "Remark"] = n_rem.strip()
+                save_data(df_office, OFFICE_FILE)
+                st.success("🎉 Success! Entry Updated Successfully!")
+                st.rerun()
+        with col_e2:
+            row_del = st.number_input("Delete Serial Number:", min_value=1, max_value=len(df_office), step=1, key="off_del_s")
+            if st.button("Confirm Delete Office Entry", type="primary"):
+                df_office = df_office.drop(row_del - 1).reset_index(drop=True)
+                save_data(df_office, OFFICE_FILE)
+                st.success("🎉 Success! Entry Deleted Successfully!")
+                st.rerun()
+        with col_e3:
+            row_wa = st.number_input("WhatsApp Serial Number:", min_value=1, max_value=len(df_office), step=1, key="off_wa_s")
+            curr_wa = df_office.iloc[row_wa - 1]
+            msg = f"Office Report:\nDate: {curr_wa['Date']}\nType: {curr_wa['Type']}\nName: {curr_wa['Name']}\nAmount: {curr_wa['Amount']}\nNotes: {curr_wa['Remark']}"
+            url = get_whatsapp_link(curr_wa["Phone"], msg)
+            if curr_wa["Phone"]:
+                st.markdown(f'<a href="{url}" target="_blank"><button style="background-color:#25D366;color:white;border:none;padding:10px 20px;border-radius:5px;">Send WhatsApp 💬</button></a>', unsafe_allow_html=True)
+            else: st.info("No phone number.")
+    else: st.info("No entries.")
 
 # ==========================================
 # 🏡 SCREEN: HOME EXPENSES REPORT
@@ -243,6 +277,40 @@ elif st.session_state.current_screen == "Home Expense":
         
         pdf_data = generate_pdf(display_df[["Date", "Type", "Name", "Amount", "Phone", "Remark"]], "Home Income & Expense Report")
         st.download_button("📥 Download Report PDF", data=pdf_data, file_name="Home_Expense_Report.pdf", mime="application/pdf")
+        
+        col_e1, col_e2, col_e3 = st.columns(3)
+        with col_e1:
+            row_ed = st.number_input("Edit Serial Number:", min_value=1, max_value=len(df_home), step=1, key="hm_ed_s")
+            idx = row_ed - 1
+            curr = df_home.iloc[idx]
+            n_name = st.text_input("Naya Nam:", value=str(curr["Name"]), key="hm_en")
+            n_amt = st.number_input("Naya Amount:", value=float(curr["Amount"]), key="hm_ea")
+            n_ph = st.text_input("Naya Phone:", value=str(curr["Phone"]), key="hm_eph")
+            n_rem = st.text_area("Naya Remark:", value=str(curr["Remark"]), key="hm_er")
+            if st.button("Update Entry"):
+                df_home.at[idx, "Name"] = n_name.strip()
+                df_home.at[idx, "Amount"] = n_amt
+                df_home.at[idx, "Phone"] = n_ph.strip()
+                df_home.at[idx, "Remark"] = n_rem.strip()
+                save_data(df_home, HOME_FILE)
+                st.success("🎉 Success! Entry Updated Successfully!")
+                st.rerun()
+        with col_e2:
+            row_del = st.number_input("Delete Serial Number:", min_value=1, max_value=len(df_home), step=1, key="hm_del_s")
+            if st.button("Confirm Delete Home Entry", type="primary"):
+                df_home = df_home.drop(row_del - 1).reset_index(drop=True)
+                save_data(df_home, HOME_FILE)
+                st.success("🎉 Success! Entry Deleted Successfully!")
+                st.rerun()
+        with col_e3:
+            row_wa = st.number_input("WhatsApp Serial Number:", min_value=1, max_value=len(df_home), step=1, key="hm_wa_s")
+            curr_wa = df_home.iloc[row_wa - 1]
+            msg = f"Home Report:\nDate: {curr_wa['Date']}\nType: {curr_wa['Type']}\nName: {curr_wa['Name']}\nAmount: {curr_wa['Amount']}\nNotes: {curr_wa['Remark']}"
+            url = get_whatsapp_link(curr_wa["Phone"], msg)
+            if curr_wa["Phone"]:
+                st.markdown(f'<a href="{url}" target="_blank"><button style="background-color:#25D366;color:white;border:none;padding:10px 20px;border-radius:5px;">Send WhatsApp 💬</button></a>', unsafe_allow_html=True)
+            else: st.info("No phone number.")
+    else: st.info("No entries.")
 
 # ==========================================
 # 👷 SCREEN: OPERATOR AND PARTY ACCOUNT
@@ -274,12 +342,12 @@ elif st.session_state.current_screen == "Operator Party":
                     if not ((df_master['Type'] == 'Operator') & (df_master['Name'] == name_in.strip())).any():
                         df_master = pd.concat([df_master, pd.DataFrame([{"Type": "Operator", "Name": name_in.strip()}])], ignore_index=True)
                         save_data(df_master, OP_PARTY_MASTER_FILE)
-                        st.success("🎉 Success! Operator Added Successfully!")
+                        st.success("🎉 Success! Entry Saved Successfully!")
                         st.rerun()
                 elif act == "Remove" and name_in.strip():
                     df_master = df_master[~((df_master['Type'] == 'Operator') & (df_master['Name'] == name_in.strip()))]
                     save_data(df_master, OP_PARTY_MASTER_FILE)
-                    st.success("🎉 Success! Operator Removed Successfully!")
+                    st.success("🎉 Success! Entry Saved Successfully!")
                     st.rerun()
                     
     with col_m2:
@@ -292,17 +360,17 @@ elif st.session_state.current_screen == "Operator Party":
                     if not ((df_master['Type'] == 'Party') & (df_master['Name'] == name_in.strip())).any():
                         df_master = pd.concat([df_master, pd.DataFrame([{"Type": "Party", "Name": name_in.strip()}])], ignore_index=True)
                         save_data(df_master, OP_PARTY_MASTER_FILE)
-                        st.success("🎉 Success! Party Added Successfully!")
+                        st.success("🎉 Success! Entry Saved Successfully!")
                         st.rerun()
                 elif act == "Remove" and name_in.strip():
                     df_master = df_master[~((df_master['Type'] == 'Party') & (df_master['Name'] == name_in.strip()))]
                     save_data(df_master, OP_PARTY_MASTER_FILE)
-                    st.success("🎉 Success! Party Removed Successfully!")
+                    st.success("🎉 Success! Entry Saved Successfully!")
                     st.rerun()
 
     st.markdown("---")
     
-    # 2 Entry Panels (Left: Work Entry, Right: Upad Entry)
+    # 2 Entry Panels
     col_ent1, col_ent2 = st.columns(2)
     
     with col_ent1:
@@ -367,7 +435,7 @@ elif st.session_state.current_screen == "Operator Party":
                     df_work = pd.concat([df_work, pd.DataFrame([new_row])], ignore_index=True)
                     save_data(df_work, DAILY_WORK_FILE)
                     st.success("🎉 Success! Entry Saved Successfully!")
-                    st.toast("Work Saved Successfully!")
+                    st.toast("Saved Successfully!")
                     st.rerun()
 
     with col_ent2:
@@ -407,7 +475,7 @@ elif st.session_state.current_screen == "Operator Party":
                     df_upad = pd.concat([df_upad, pd.DataFrame([new_upad])], ignore_index=True)
                     save_data(df_upad, OP_UPAD_FILE)
                     st.success("🎉 Success! Entry Saved Successfully!")
-                    st.toast("Upad Saved Successfully!")
+                    st.toast("Saved Successfully!")
                     st.rerun()
 
     st.markdown("---")
@@ -454,6 +522,31 @@ elif st.session_state.current_screen == "Operator Party":
         display_df = df_work.copy()
         display_df.index = display_df.index + 1
         st.dataframe(display_df)
+        
+        c_ed1, c_ed2 = st.columns(2)
+        with c_ed1:
+            row_e = st.number_input("Edit Serial Number:", min_value=1, max_value=len(df_work), step=1, key="w_ed")
+            idx_w = row_e - 1
+            curr_w = df_work.iloc[idx_w]
+            n_op_r = st.number_input("Naya Operator Rate:", value=float(curr_w["Operator Rate"]))
+            n_pt_r = st.number_input("Naya Party Rate:", value=float(curr_w["Party Rate"]))
+            if st.button("Update Work Values"):
+                w_t = curr_w["Work Type"]
+                mult = curr_w["Pcs"] if w_t == "PC" else (curr_w["Carats"] if w_t == "Carat" else curr_w["Choki"])
+                df_work.at[idx_w, "Operator Rate"] = n_op_r
+                df_work.at[idx_w, "Party Rate"] = n_pt_r
+                df_work.at[idx_w, "Operator Amount"] = mult * n_op_r
+                df_work.at[idx_w, "Party Amount"] = mult * n_pt_r
+                save_data(df_work, DAILY_WORK_FILE)
+                st.success("🎉 Success! Entry Saved Successfully!")
+                st.rerun()
+        with c_ed2:
+            row_d = st.number_input("Delete Serial Number:", min_value=1, max_value=len(df_work), step=1, key="w_del")
+            if st.button("Confirm Delete Work Row", type="primary"):
+                df_work = df_work.drop(row_d - 1).reset_index(drop=True)
+                save_data(df_work, DAILY_WORK_FILE)
+                st.success("🎉 Success! Entry Saved Successfully!")
+                st.rerun()
         
     elif sub_rep == "Full Upad Panel" and not df_upad.empty:
         df_upad = df_upad.sort_values(by="Date", ascending=False).reset_index(drop=True)
