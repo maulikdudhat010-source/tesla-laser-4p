@@ -393,7 +393,20 @@ if app_route == "(1) Office Expense Master":
             
             out_amount = st.number_input("Paid Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else None, placeholder="Type amount directly...", key=f"off_exp_amt_{Token}")
             out_phone = st.text_input("WhatsApp Number:", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "", key=f"off_exp_ph_{Token}")
-            out_remark = st.text_area("Purpose / Remark:", value=edit_office_row.get("Remark", "") if is_editing_office_purchases else edit_factory_row.get("Remark", ""))
+           # --- Remark Field Logic (Safe from NameError & SyntaxError) ---
+if 'is_editing_office_purchases' in locals() and is_editing_office_purchases:
+    if 'edit_office_row' in locals() and hasattr(edit_office_row, 'get'):
+        default_remark = edit_office_row.get("Remark", "")
+    else:
+        default_remark = ""
+else:
+    if 'edit_factory_row' in locals() and hasattr(edit_factory_row, 'get'):
+        default_remark = edit_factory_row.get("Remark", "")
+    else:
+        default_remark = ""
+
+out_remark = st.text_area("Purpose / Remark:", value=default_remark)
+# --- End of Remark Field Logic ---
             sub_label_exp = "Update Cash Outward" if is_editing_office else "Save Cash Outward"
             if st.form_submit_button(sub_label_exp):
                 clear_all_messages()
