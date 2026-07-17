@@ -275,19 +275,20 @@ def native_contact_picker_js(identifier_tag):
     components.html(script_block, height=45)
 
 # ==========================================
-# 6. SIDEBAR NAVIGATION & RATE LOCK PANEL
+# 6. SIDEBAR NAVIGATION SYSTEM
 # ==========================================
 st.sidebar.markdown("<h2 style='color:#61afef; text-align: center; margin-bottom:0;'>💎 Tesla Laser Pro</h2>", unsafe_allow_html=True)
 st.sidebar.markdown("<p style='text-align: center; font-size:11px; color:#ff9900;'>Industrial 4P Engine Panel</p>", unsafe_allow_html=True)
 st.sidebar.markdown("---")
 
-# NEW NAVIGATION RESET VECTOR (BACK TO MAIN VIEW BUTTON)
-if st.sidebar.button("🏠 Back to Main Dashboard / Clear View", use_container_width=True):
+# --- POWERFUL NAVIGATION RESET VECTOR (FORCE RE-INITIALIZATION) ---
+if st.sidebar.button("🏠 Back to Main Dashboard / Clear View", key="global_dashboard_reset_trigger", use_container_width=True):
     cancel_edit()
     clear_all_messages()
     st.session_state.sel_op = ""
     st.session_state.sel_u_op = ""
     st.toast("🔄 Dashboard Reset Successfully!", icon="🏠")
+    st.experimental_set_query_params() # URL resets for forceful UI reload
     st.rerun()
 
 st.sidebar.markdown("---")
@@ -308,7 +309,7 @@ else:
 st.sidebar.markdown("---")
 st.sidebar.markdown("<h3 style='color:#ff9900; text-align:center; margin-bottom:10px;'>🔒 Set & Lock Default Rates</h3>", unsafe_allow_html=True)
 
-with st.sidebar.expander("⚙️ Configure Fixed Rates", expanded=True):
+with st.sidebar.expander("⚙️ Configure Fixed Rates", expanded=False):
     st.markdown("**1. Piece (PC) Mode Rates**")
     locked_op_pc = st.number_input("Operator Rate (PC):", min_value=0.0, value=st.session_state.locked_op_rate_pc, step=0.5, key="sb_op_pc")
     locked_party_pc = st.number_input("Party Rate (PC):", min_value=0.0, value=st.session_state.locked_party_rate_pc, step=0.5, key="sb_party_pc")
@@ -354,10 +355,7 @@ if app_route == "(1) Office Expense Master":
             in_name = st.text_input("Source Name / Party:", value=edit_office_row.get("Name", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_name_{Token}")
             
             in_amount = st.number_input("Collected Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else None, placeholder="Type amount directly...", key=f"off_in_amt_{Token}")
-            
-            # --- TYPO CRASH FIX AT THIS NODE ---
             in_phone = st.text_input("WhatsApp Number (10 Digits):", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_ph_{Token}")
-            
             in_remark = st.text_area("Entry Remarks / Context:", value=edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_rem_{Token}")
             
             sub_label = "Update Cash Inward" if is_editing_office else "Save Cash Inward"
@@ -395,7 +393,7 @@ if app_route == "(1) Office Expense Master":
             
             out_amount = st.number_input("Paid Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else None, placeholder="Type amount directly...", key=f"off_exp_amt_{Token}")
             out_phone = st.text_input("WhatsApp Number:", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "", key=f"off_exp_ph_{Token}")
-            out_remark = st.text_area("Purpose / Remark:", value=edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "", key=f"off_exp_rem_{Token}")
+            out_remark = st.text_area("Purpose / Remark:", value=edit_office_row.get("Remark", "") if (is_editing_office purchases else edit_office_row.get("Remark", "")) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "", key=f"off_exp_rem_{Token}")
             
             sub_label_exp = "Update Cash Outward" if is_editing_office else "Save Cash Outward"
             if st.form_submit_button(sub_label_exp):
