@@ -284,6 +284,7 @@ st.sidebar.markdown("---")
 app_route = st.sidebar.radio(
     "Navigation System Menu:",
     ["(1) Office Expense Master", "(2) Home Expense Master", "(3) Operator Ledger & Production Desk"],
+    key="main_nav",
     on_change=clear_all_messages
 )
 
