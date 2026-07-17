@@ -172,6 +172,7 @@ def force_global_reset():
     st.session_state.sel_wt = "PC"
     st.session_state.sel_pm = "Cash"
     st.query_params.clear() 
+    st.session_state.clear()
     st.rerun()
 
 # ==========================================
