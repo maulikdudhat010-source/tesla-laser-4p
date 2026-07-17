@@ -11,11 +11,10 @@ import io
 import streamlit.components.v1 as components
 
 # ==========================================
-# 1. PAGE CONFIGURATION & STYLING
+# 1. PAGE CONFIGURATION & STYLING (FIXED COLORS)
 # ==========================================
 st.set_page_config(page_title="Tesla Laser 4P Management Pro", page_icon="💎", layout="wide")
 
-# High-Contrast Active Navigation & Status Highlights Styling
 st.markdown("""
     <style>
     /* Streamlit Defaults Cleaning */
@@ -45,7 +44,7 @@ st.markdown("""
         padding: 20px !important;
     }
     
-    /* High Visibility Typography */
+    /* High Visibility Typography & Labels */
     label, p, span, .stMetric div {
         color: #ffffff !important;
         font-weight: 600 !important;
@@ -57,7 +56,7 @@ st.markdown("""
         font-weight: 800 !important;
     }
     
-    /* Form Input Fields Border Color Controls */
+    /* Form Input Fields & Buttons Text Visibility Fix */
     input, select, textarea, div[data-baseweb="input"] input, div[data-baseweb="select"] {
         background-color: #111418 !important;
         color: #ffffff !important;
@@ -67,6 +66,11 @@ st.markdown("""
     
     input:focus, select:focus, textarea:focus {
         border-color: #61afef !important;
+    }
+
+    /* Target right side option text visibility & search drop-downs */
+    div[data-baseweb="select"] * {
+        color: #ffffff !important;
     }
     
     /* Main Action Form Buttons */
@@ -112,25 +116,23 @@ DAILY_WORK_FILE = "daily_work_entries.csv"
 OP_UPAD_FILE = "operator_upad_entries.csv"
 
 # ==========================================
-# 3. INTERACTIVE SESSION CONTROLLERS
+# 3. INTERACTIVE SESSION CONTROLLERS & EDIT STATE
 # ==========================================
-# Message logs initialization
 for key in ['msg_off_inc', 'msg_off_exp', 'msg_hm_inc', 'msg_hm_exp', 'msg_work', 'msg_upad']:
     if key not in st.session_state: 
         st.session_state[key] = ""
 
-# Active State Selection Trackers
 if 'sel_op' not in st.session_state: st.session_state.sel_op = ""
 if 'sel_pt' not in st.session_state: st.session_state.sel_pt = ""
 if 'sel_wt' not in st.session_state: st.session_state.sel_wt = "PC"
 if 'sel_u_op' not in st.session_state: st.session_state.sel_u_op = ""
 if 'sel_pm' not in st.session_state: st.session_state.sel_pm = "Cash"
 
-# Edit System Variables
+# Advanced Edit Systems State
 if 'edit_id' not in st.session_state: st.session_state.edit_id = None
 if 'edit_section' not in st.session_state: st.session_state.edit_section = ""
+if 'edit_data' not in st.session_state: st.session_state.edit_data = {}
 
-# Auto Clear Callback Function
 def clear_all_messages():
     st.session_state.msg_off_inc = ""
     st.session_state.msg_off_exp = ""
@@ -139,6 +141,11 @@ def clear_all_messages():
     st.session_state.msg_work = ""
     st.session_state.msg_upad = ""
 
+def cancel_edit():
+    st.session_state.edit_id = None
+    st.session_state.edit_section = ""
+    st.session_state.edit_data = {}
+
 # ==========================================
 # 4. STORAGE DATA HANDLING SYSTEM
 # ==========================================
@@ -146,10 +153,10 @@ def load_data(file_path, base_columns):
     if os.path.exists(file_path):
         try:
             df = pd.read_csv(file_path)
-            # Synchronize schema matches
+            # Schema Match synchronization
             for col in base_columns:
                 if col not in df.columns:
-                    df[col] = 0.0 if col in ["Amount", "Pcs", "Carat_20_Up", "Carat_1_Up", "Choki"] else ""
+                    df[col] = 0.0 if col in ["Amount", "Pcs", "Pcs_20_Up", "Pcs_1_Up", "Carat_20_Up", "Carat_1_Up", "Choki"] else ""
             return df
         except:
             return pd.DataFrame(columns=base_columns)
@@ -158,14 +165,14 @@ def load_data(file_path, base_columns):
 def save_data(df, file_path):
     df.to_csv(file_path, index=False)
 
-# Master Data Schema Mappings
+# Load Master Data
 df_master = load_data(OP_PARTY_MASTER_FILE, ["Type", "Name"])
 df_office = load_data(OFFICE_FILE, ["Date", "Type", "Name", "Amount", "Phone", "Remark"])
 df_home = load_data(HOME_FILE, ["Date", "Type", "Name", "Amount", "Phone", "Remark"])
 
 work_columns_template = [
     "Date", "Operator", "Party", "Work Type", "Pcs", 
-    "Carat_20_Up", "Carat_1_Up", "Choki", 
+    "Pcs_20_Up", "Pcs_1_Up", "Carat_20_Up", "Carat_1_Up", "Choki", 
     "Op_Rate_20_Up", "Op_Rate_1_Up",
     "Operator Rate", "Party Rate", "Operator Amount", "Party Amount"
 ]
@@ -173,7 +180,7 @@ df_work = load_data(DAILY_WORK_FILE, work_columns_template)
 df_upad = load_data(OP_UPAD_FILE, ["Date", "Operator", "Amount", "Payment Mode", "Remark"])
 
 # Sanitize Types & Floating values
-numerical_fields = ["Pcs", "Carat_20_Up", "Carat_1_Up", "Choki", "Op_Rate_20_Up", "Op_Rate_1_Up", "Operator Rate", "Party Rate", "Operator Amount", "Party Amount"]
+numerical_fields = ["Pcs", "Pcs_20_Up", "Pcs_1_Up", "Carat_20_Up", "Carat_1_Up", "Choki", "Op_Rate_20_Up", "Op_Rate_1_Up", "Operator Rate", "Party Rate", "Operator Amount", "Party Amount"]
 for column_name in numerical_fields:
     if column_name in df_work.columns:
         df_work[column_name] = pd.to_numeric(df_work[column_name], errors='coerce').fillna(0.0)
@@ -263,7 +270,6 @@ app_route = st.sidebar.radio(
     on_change=clear_all_messages
 )
 
-# Active Route Marker UI Injection
 if app_route == "(1) Office Expense Master":
     st.sidebar.markdown("<div style='background-color:#1c2026; padding:10px; border-radius:5px; border-left:4px solid #ff9900; text-align:center; font-weight:bold;'>📍 Location: Office Desk Active</div>", unsafe_allow_html=True)
 elif app_route == "(2) Home Expense Master":
@@ -277,9 +283,9 @@ else:
 if app_route == "(1) Office Expense Master":
     st.header("🏢 Office Records & Accounting Ledger")
     
-    # Handle Form State Initialization for edits
-    if st.session_state.edit_section != "Office":
-        edit_row = {"Date": datetime.today().date(), "Type": "Income (Aaya)", "Name": "", "Amount": 0.0, "Phone": "", "Remark": ""}
+    # Check if Editing Office Data
+    is_editing_office = (st.session_state.edit_section == "Office" and st.session_state.edit_id is not None)
+    edit_office_row = st.session_state.edit_data if is_editing_office else {}
     
     col_income, col_expense = st.columns(2)
     
@@ -287,22 +293,32 @@ if app_route == "(1) Office Expense Master":
         st.subheader("💰 Cash Inward (Paisa Aaya)")
         native_contact_picker_js("off_in")
         with st.form("office_income_capture_form"):
-            in_date = st.date_input("Date:", key="oi_f_date")
-            in_name = st.text_input("Source Name / Party:", value="" if st.session_state.edit_section != "Office" else edit_row["Name"])
-            in_amount = st.number_input("Collected Amount (₹):", min_value=0.0, step=50.0, value=None)
-            in_phone = st.text_input("WhatsApp Number (10 Digits):")
-            in_remark = st.text_area("Entry Remarks / Context:")
+            in_date = st.date_input("Date:", value=datetime.strptime(edit_office_row["Date"], "%Y-%m-%d").date() if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else datetime.today().date())
+            in_name = st.text_input("Source Name / Party:", value=edit_office_row.get("Name", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "")
+            in_amount = st.number_input("Collected Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount", 0.0)) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else None)
+            in_phone = st.text_input("WhatsApp Number (10 Digits):", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "")
+            in_remark = st.text_area("Entry Remarks / Context:", value=edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "")
             
-            if st.form_submit_button("Save Cash Inward"):
+            sub_label = "Update Cash Inward" if is_editing_office else "Save Cash Inward"
+            if st.form_submit_button(sub_label):
                 clear_all_messages()
                 if not in_name or in_amount is None:
                     st.error("Nam aur Amount bharna mandatory hai!")
                 else:
-                    new_log = {"Date": str(in_date), "Type": "Income (Aaya)", "Name": in_name.strip(), "Amount": float(in_amount), "Phone": in_phone.strip(), "Remark": in_remark.strip()}
-                    df_office = pd.concat([df_office, pd.DataFrame([new_log])], ignore_index=True)
+                    new_log = {"Date": str(in_date), "Type": "Income (Aaya)", "Name": in_name.strip(), "Amount": float(in_amount), "Phone": str(in_phone).strip(), "Remark": in_remark.strip()}
+                    if is_editing_office:
+                        df_office.iloc[st.session_state.edit_id] = new_log
+                        cancel_edit()
+                        st.session_state.msg_off_inc = "✔ Entry Updated Successfully!"
+                    else:
+                        df_office = pd.concat([df_office, pd.DataFrame([new_log])], ignore_index=True)
+                        st.session_state.msg_off_inc = "✔ Income Entry Tracked Successfully!"
                     save_data(df_office, OFFICE_FILE)
-                    st.session_state.msg_off_inc = "✔ Income Entry Tracked Successfully!"
                     st.rerun()
+            
+            if is_editing_office and st.form_submit_button("Cancel Edit"):
+                cancel_edit()
+                st.rerun()
             
             if st.session_state.msg_off_inc:
                 st.markdown(f'<div class="inline-success">{st.session_state.msg_off_inc}</div>', unsafe_allow_html=True)
@@ -311,21 +327,27 @@ if app_route == "(1) Office Expense Master":
         st.subheader("💸 Cash Outward (Paisa Gaya)")
         native_contact_picker_js("off_exp")
         with st.form("office_expense_capture_form"):
-            out_date = st.date_input("Date:", key="oe_f_date")
-            out_name = st.text_input("Recipient / Vendor Name:")
-            out_amount = st.number_input("Paid Amount (₹):", min_value=0.0, step=50.0, value=None)
-            out_phone = st.text_input("WhatsApp Number:")
-            out_remark = st.text_area("Purpose / Remark:")
+            out_date = st.date_input("Date:", value=datetime.strptime(edit_office_row["Date"], "%Y-%m-%d").date() if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else datetime.today().date())
+            out_name = st.text_input("Recipient / Vendor Name:", value=edit_office_row.get("Name", "") if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "")
+            out_amount = st.number_input("Paid Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount", 0.0)) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else None)
+            out_phone = st.text_input("WhatsApp Number:", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "")
+            out_remark = st.text_area("Purpose / Remark:", value=edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "")
             
-            if st.form_submit_button("Save Cash Outward"):
+            sub_label_exp = "Update Cash Outward" if is_editing_office else "Save Cash Outward"
+            if st.form_submit_button(sub_label_exp):
                 clear_all_messages()
                 if not out_name or out_amount is None:
                     st.error("Nam aur Amount fields blank nahi chod sakte!")
                 else:
-                    new_log = {"Date": str(out_date), "Type": "Expense (Gaya)", "Name": out_name.strip(), "Amount": float(out_amount), "Phone": out_phone.strip(), "Remark": out_remark.strip()}
-                    df_office = pd.concat([df_office, pd.DataFrame([new_log])], ignore_index=True)
+                    new_log = {"Date": str(out_date), "Type": "Expense (Gaya)", "Name": out_name.strip(), "Amount": float(out_amount), "Phone": str(out_phone).strip(), "Remark": out_remark.strip()}
+                    if is_editing_office:
+                        df_office.iloc[st.session_state.edit_id] = new_log
+                        cancel_edit()
+                        st.session_state.msg_off_exp = "✔ Entry Updated Successfully!"
+                    else:
+                        df_office = pd.concat([df_office, pd.DataFrame([new_log])], ignore_index=True)
+                        st.session_state.msg_off_exp = "✔ Expense Entry Tracked Successfully!"
                     save_data(df_office, OFFICE_FILE)
-                    st.session_state.msg_off_exp = "✔ Expense Entry Tracked Successfully!"
                     st.rerun()
             
             if st.session_state.msg_off_exp:
@@ -335,29 +357,32 @@ if app_route == "(1) Office Expense Master":
     st.subheader("📋 Filtered Statements Log Sheet")
     
     if not df_office.empty:
-        df_office = df_office.sort_values(by="Date", ascending=False).reset_index(drop=True)
+        df_office_show = df_office.copy()
         
-        # Build manual interactive rows for advanced actions
-        for idx, row in df_office.iterrows():
+        for idx, row in df_office_show.iterrows():
             with st.container():
-                r_col1, r_col2, r_col3, r_col4, r_col5, r_col6 = st.columns([1.5, 2.5, 1.5, 2.5, 1.5, 1.5])
+                r_col1, r_col2, r_col3, r_col4, r_col5, r_col6, r_col7 = st.columns([1.5, 2.5, 1.5, 2.5, 1.5, 1.0, 1.0])
                 
-                # Designations
                 r_col1.markdown(f"🗓 `{row['Date']}`")
                 badge = f"🟢 <span style='color:#7cfc00;'>{row['Type']}</span>" if "Income" in row['Type'] else f"🔴 <span style='color:#ff5555;'>{row['Type']}</span>"
                 r_col2.markdown(f"{badge} **{row['Name']}**", unsafe_allow_html=True)
                 r_col3.markdown(f"💰 **₹{row['Amount']:.2f}**")
                 r_col4.markdown(f"📝 <span style='color:#a6b2c6;'>{row['Remark']}</span>", unsafe_allow_html=True)
                 
-                # WhatsApp Action Link Execution
                 wa_msg_body = f"Tesla Laser Office Log:\nDate: {row['Date']}\nType: {row['Type']}\nParty: {row['Name']}\nAmount: ₹{row['Amount']}\nRemark: {row['Remark']}"
                 wa_endpoint = build_whatsapp_url(row['Phone'], wa_msg_body)
-                if row['Phone']:
-                    r_col5.markdown(f"<a href='{wa_endpoint}' target='_blank'><button style='background-color:#25D366; color:white; border:none; border-radius:4px; font-weight:bold; padding:2px 8px;'>💬 Send WA</button></a>", unsafe_allow_html=True)
+                if row['Phone'] and str(row['Phone']).strip() != "":
+                    r_col5.markdown(f"<a href='{wa_endpoint}' target='_blank'><button style='background-color:#25D366; color:white; border:none; border-radius:4px; font-weight:bold; padding:2px 8px; width:100%;'>💬 Send WA</button></a>", unsafe_allow_html=True)
                 else:
                     r_col5.markdown("<span style='color:grey; font-size:12px;'>No Phone</span>", unsafe_allow_html=True)
                 
-                if r_col6.button("❌ Delete", key=f"del_off_row_{idx}"):
+                if r_col6.button("✏️ Edit", key=f"edit_off_row_{idx}"):
+                    st.session_state.edit_id = idx
+                    st.session_state.edit_section = "Office"
+                    st.session_state.edit_data = row.to_dict()
+                    st.rerun()
+                
+                if r_col7.button("❌ Delete", key=f"del_off_row_{idx}"):
                     clear_all_messages()
                     df_office = df_office.drop(idx).reset_index(drop=True)
                     save_data(df_office, OFFICE_FILE)
@@ -375,27 +400,42 @@ if app_route == "(1) Office Expense Master":
 # ==========================================
 elif app_route == "(2) Home Expense Master":
     st.header("🏡 Home Personal Accounting Desk")
+    
+    # Check if Editing Home Data
+    is_editing_home = (st.session_state.edit_section == "Home" and st.session_state.edit_id is not None)
+    edit_home_row = st.session_state.edit_data if is_editing_home else {}
+    
     col_hm_inc, col_hm_exp = st.columns(2)
     
     with col_hm_inc:
         st.subheader("💰 Inward Streams (Ghar me Paisa Aaya)")
         with st.form("home_income_form"):
-            h_in_date = st.date_input("Date:", key="hi_f_date")
-            h_in_name = st.text_input("Source Name:")
-            h_in_amount = st.number_input("Amount (₹):", min_value=0.0, step=100.0, value=None)
-            h_in_phone = st.text_input("Phone Reference:")
-            h_in_remark = st.text_area("Notes:")
+            h_in_date = st.date_input("Date:", value=datetime.strptime(edit_home_row["Date"], "%Y-%m-%d").date() if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else datetime.today().date())
+            h_in_name = st.text_input("Source Name:", value=edit_home_row.get("Name", "") if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else "")
+            h_in_amount = st.number_input("Amount (₹):", min_value=0.0, step=100.0, value=float(edit_home_row.get("Amount", 0.0)) if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else None)
+            h_in_phone = st.text_input("Phone Reference:", value=str(edit_home_row.get("Phone", "")) if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else "")
+            h_in_remark = st.text_area("Notes:", value=edit_home_row.get("Remark", "") if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else "")
             
-            if st.form_submit_button("Commit Home Inward Record"):
+            sub_label_hi = "Update Home Inward" if is_editing_home else "Commit Home Inward Record"
+            if st.form_submit_button(sub_label_hi):
                 clear_all_messages()
                 if not h_in_name or h_in_amount is None:
                     st.error("Mandatory entries complete karein!")
                 else:
-                    new_record = {"Date": str(h_in_date), "Type": "Income (Aaya)", "Name": h_in_name.strip(), "Amount": float(h_in_amount), "Phone": h_in_phone.strip(), "Remark": h_in_remark.strip()}
-                    df_home = pd.concat([df_home, pd.DataFrame([new_record])], ignore_index=True)
+                    new_record = {"Date": str(h_in_date), "Type": "Income (Aaya)", "Name": h_in_name.strip(), "Amount": float(h_in_amount), "Phone": str(h_in_phone).strip(), "Remark": h_in_remark.strip()}
+                    if is_editing_home:
+                        df_home.iloc[st.session_state.edit_id] = new_record
+                        cancel_edit()
+                        st.session_state.msg_hm_inc = "✔ Entry Updated Successfully!"
+                    else:
+                        df_home = pd.concat([df_home, pd.DataFrame([new_record])], ignore_index=True)
+                        st.session_state.msg_hm_inc = "✔ Home Income Logged Successfully!"
                     save_data(df_home, HOME_FILE)
-                    st.session_state.msg_hm_inc = "✔ Home Income Logged Successfully!"
                     st.rerun()
+            
+            if is_editing_home and st.form_submit_button("Cancel Edit"):
+                cancel_edit()
+                st.rerun()
             
             if st.session_state.msg_hm_inc:
                 st.markdown(f'<div class="inline-success">{st.session_state.msg_hm_inc}</div>', unsafe_allow_html=True)
@@ -403,21 +443,27 @@ elif app_route == "(2) Home Expense Master":
     with col_hm_exp:
         st.subheader("💸 Household Expenses (Kharcha)")
         with st.form("home_expense_form"):
-            h_out_date = st.date_input("Date:", key="he_f_date")
-            h_out_name = st.text_input("Expense Title / Context:")
-            h_out_amount = st.number_input("Spent Amount (₹):", min_value=0.0, step=50.0, value=None)
-            h_out_phone = st.text_input("Phone:")
-            h_out_remark = st.text_area("Detail Description:")
+            h_out_date = st.date_input("Date:", value=datetime.strptime(edit_home_row["Date"], "%Y-%m-%d").date() if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else datetime.today().date())
+            h_out_name = st.text_input("Expense Title / Context:", value=edit_home_row.get("Name", "") if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else "")
+            h_out_amount = st.number_input("Spent Amount (₹):", min_value=0.0, step=50.0, value=float(edit_home_row.get("Amount", 0.0)) if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else None)
+            h_out_phone = st.text_input("Phone:", value=str(edit_home_row.get("Phone", "")) if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else "")
+            h_out_remark = st.text_area("Detail Description:", value=edit_home_row.get("Remark", "") if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else "")
             
-            if st.form_submit_button("Commit Home Outward Record"):
+            sub_label_he = "Update Home Expense" if is_editing_home else "Commit Home Outward Record"
+            if st.form_submit_button(sub_label_he):
                 clear_all_messages()
                 if not h_out_name or h_out_amount is None:
                     st.error("Data inputs verified empty!")
                 else:
-                    new_record = {"Date": str(h_out_date), "Type": "Expense (Gaya)", "Name": h_out_name.strip(), "Amount": float(h_out_amount), "Phone": h_out_phone.strip(), "Remark": h_out_remark.strip()}
-                    df_home = pd.concat([df_home, pd.DataFrame([new_record])], ignore_index=True)
+                    new_record = {"Date": str(h_out_date), "Type": "Expense (Gaya)", "Name": h_out_name.strip(), "Amount": float(h_out_amount), "Phone": str(h_out_phone).strip(), "Remark": h_out_remark.strip()}
+                    if is_editing_home:
+                        df_home.iloc[st.session_state.edit_id] = new_record
+                        cancel_edit()
+                        st.session_state.msg_hm_exp = "✔ Entry Updated Successfully!"
+                    else:
+                        df_home = pd.concat([df_home, pd.DataFrame([new_record])], ignore_index=True)
+                        st.session_state.msg_hm_exp = "✔ Home Expense Logged Successfully!"
                     save_data(df_home, HOME_FILE)
-                    st.session_state.msg_hm_exp = "✔ Home Expense Logged Successfully!"
                     st.rerun()
             
             if st.session_state.msg_hm_exp:
@@ -427,18 +473,24 @@ elif app_route == "(2) Home Expense Master":
     st.subheader("📋 Domestic Ledger History View")
     
     if not df_home.empty:
-        df_home = df_home.sort_values(by="Date", ascending=False).reset_index(drop=True)
+        df_home_show = df_home.copy()
         
-        for idx, row in df_home.iterrows():
+        for idx, row in df_home_show.iterrows():
             with st.container():
-                hr_c1, hr_c2, hr_c3, hr_c4, hr_c5 = st.columns([2, 3, 2, 3, 2])
+                hr_c1, hr_c2, hr_c3, hr_c4, hr_c5, hr_c6 = st.columns([1.5, 3.0, 1.5, 3.0, 1.0, 1.0])
                 hr_c1.write(f"📅 `{row['Date']}`")
                 label_color = "#7cfc00" if "Income" in row['Type'] else "#ff5555"
                 hr_c2.markdown(f"<span style='color:{label_color}; font-weight:bold;'>[{row['Type']}]</span> {row['Name']}", unsafe_allow_html=True)
                 hr_c3.markdown(f"₹ **{row['Amount']:.2f}**")
                 hr_c4.markdown(f"<span style='color:#8a93a5;'>{row['Remark']}</span>", unsafe_allow_html=True)
                 
-                if hr_c5.button("❌ Delete", key=f"del_hm_row_{idx}"):
+                if hr_c5.button("✏️ Edit", key=f"edit_hm_row_{idx}"):
+                    st.session_state.edit_id = idx
+                    st.session_state.edit_section = "Home"
+                    st.session_state.edit_data = row.to_dict()
+                    st.rerun()
+                
+                if hr_c6.button("❌ Delete", key=f"del_hm_row_{idx}"):
                     clear_all_messages()
                     df_home = df_home.drop(idx).reset_index(drop=True)
                     save_data(df_home, HOME_FILE)
@@ -454,11 +506,9 @@ elif app_route == "(2) Home Expense Master":
 else:
     st.header("👷 Diamond Laser 4P Production Terminal")
     
-    # Extract dynamic listings
     operator_options = df_master[df_master["Type"] == "Operator"]["Name"].tolist()
     party_options = df_master[df_master["Type"] == "Party"]["Name"].tolist()
     
-    # Master Setup Core Layout
     m_col1, m_col2 = st.columns(2)
     with m_col1:
         st.markdown("### 🛠 Operator Registration Node")
@@ -502,11 +552,22 @@ else:
 
     st.markdown("---")
     
-    # Dynamic Dashboard Control Columns
+    # Check if Editing Production or Upad
+    is_editing_work = (st.session_state.edit_section == "Work" and st.session_state.edit_id is not None)
+    edit_work_row = st.session_state.edit_data if is_editing_work else {}
+    
+    is_editing_upad = (st.session_state.edit_section == "Upad" and st.session_state.edit_id is not None)
+    edit_upad_row = st.session_state.edit_data if is_editing_upad else {}
+    
     input_column, upad_column = st.columns(2)
     
     with input_column:
         st.markdown("### 📝 Daily Diamond Production Log")
+        
+        # Set default values from edit action if applicable
+        if is_editing_work:
+            st.session_state.sel_op = edit_work_row.get("Operator", "")
+            st.session_state.sel_wt = edit_work_row.get("Work Type", "PC")
         
         # 1. Operator Selection Layout Grid with Active Highlight
         st.markdown("<p style='margin-bottom:2px; color:#ff9900;'>Select Working Operator:</p>", unsafe_allow_html=True)
@@ -549,10 +610,17 @@ else:
         
         # Main Entry Capture Submission Form
         with st.form("production_main_data_capture_form"):
-            prod_date = st.date_input("Processing Entry Date:", key="prod_f_date")
-            prod_party = st.selectbox("Select Target Client Party Account:", party_options)
+            prod_date = st.date_input("Processing Entry Date:", value=datetime.strptime(edit_work_row["Date"], "%Y-%m-%d").date() if is_editing_work else datetime.today().date())
+            
+            # Find default party index for selectbox
+            default_party_idx = 0
+            if is_editing_work and edit_work_row.get("Party") in party_options:
+                default_party_idx = party_options.index(edit_work_row.get("Party"))
+            prod_party = st.selectbox("Select Target Client Party Account:", party_options, index=default_party_idx)
             
             pcs_count = 0
+            pcs_20_up = 0
+            pcs_1_up = 0
             carat_20_weight = 0.0
             carat_1_weight = 0.0
             choki_count = 0
@@ -560,31 +628,37 @@ else:
             op_rate_20_up, op_rate_1_up, generic_op_rate, unified_party_rate = 0.0, 0.0, None, None
             
             if st.session_state.sel_wt == "PC":
-                pcs_count = st.number_input("Total Processed PC Count:", min_value=0, value=0, step=1)
-                generic_op_rate = st.number_input("Operator Component Rate (per PC):", min_value=0.0, value=None, placeholder="Rate dalein...")
-                unified_party_rate = st.number_input("Party Billing Rate (per PC):", min_value=0.0, value=None, placeholder="Rate dalein...")
+                pcs_count = st.number_input("Total Processed PC Count:", min_value=0, value=int(edit_work_row.get("Pcs", 0)) if is_editing_work else 0, step=1)
+                generic_op_rate = st.number_input("Operator Component Rate (per PC):", min_value=0.0, value=float(edit_work_row.get("Operator Rate", 0.0)) if is_editing_work else None, placeholder="Rate dalein...")
+                unified_party_rate = st.number_input("Party Billing Rate (per PC):", min_value=0.0, value=float(edit_work_row.get("Party Rate", 0.0)) if is_editing_work else None, placeholder="Rate dalein...")
                 
             elif st.session_state.sel_wt == "Carat":
-                st.markdown("<p style='color:#ff9900; font-weight:bold; margin-bottom: 2px;'>Carat Metrics & Integrated Pcs Box:</p>", unsafe_allow_html=True)
-                pcs_count = st.number_input("Total Number of Pcs Inside Carat Batch:", min_value=0, value=0, step=1)
+                st.markdown("<p style='color:#ff9900; font-weight:bold; margin-bottom: 2px;'>Carat Metrics & Separated PC Boxes:</p>", unsafe_allow_html=True)
+                
+                pc_col1, pc_col2 = st.columns(2)
+                with pc_col1:
+                    pcs_20_up = st.number_input("+20 Up Pcs Count:", min_value=0, value=int(edit_work_row.get("Pcs_20_Up", 0)) if is_editing_work else 0, step=1)
+                with pc_col2:
+                    pcs_1_up = st.number_input("+1 Carat Pcs Count:", min_value=0, value=int(edit_work_row.get("Pcs_1_Up", 0)) if is_editing_work else 0, step=1)
                 
                 wt_col1, wt_col2 = st.columns(2)
                 with wt_col1:
-                    carat_20_weight = st.number_input("+20 Up Raw Carat Weight Value:", min_value=0.0, value=0.0, step=0.01, format="%.2f")
-                    op_rate_20_up = st.number_input("+20 Up Operator Pay Rate:", min_value=0.0, value=0.0, step=0.1)
+                    carat_20_weight = st.number_input("+20 Up Raw Carat Weight Value:", min_value=0.0, value=float(edit_work_row.get("Carat_20_Up", 0.0)) if is_editing_work else 0.0, step=0.01, format="%.2f")
+                    op_rate_20_up = st.number_input("+20 Up Operator Pay Rate:", min_value=0.0, value=float(edit_work_row.get("Op_Rate_20_Up", 0.0)) if is_editing_work else 0.0, step=0.1)
                 with wt_col2:
-                    carat_1_weight = st.number_input("+1 Carat Raw Weight Value:", min_value=0.0, value=0.0, step=0.01, format="%.2f")
-                    op_rate_1_up = st.number_input("+1 Carat Operator Pay Rate:", min_value=0.0, value=0.0, step=0.1)
+                    carat_1_weight = st.number_input("+1 Carat Raw Weight Value:", min_value=0.0, value=float(edit_work_row.get("Carat_1_Up", 0.0)) if is_editing_work else 0.0, step=0.01, format="%.2f")
+                    op_rate_1_up = st.number_input("+1 Carat Operator Pay Rate:", min_value=0.0, value=float(edit_work_row.get("Op_Rate_1_Up", 0.0)) if is_editing_work else 0.0, step=0.1)
                     
                 st.markdown("<p style='color:#7cfc00; font-weight:bold; margin-bottom: 2px;'>Collective Consolidated Party Evaluation:</p>", unsafe_allow_html=True)
-                unified_party_rate = st.number_input("Consolidated Party Carat Standard Rate:", min_value=0.0, value=None, placeholder="Total single rate...")
+                unified_party_rate = st.number_input("Consolidated Party Carat Standard Rate:", min_value=0.0, value=float(edit_work_row.get("Party Rate", 0.0)) if is_editing_work else None, placeholder="Total single rate...")
                 
             else:
-                choki_count = st.number_input("Total Handled Choki Units:", min_value=0, value=0, step=1)
-                generic_op_rate = st.number_input("Operator Pay Scale (per Choki):", min_value=0.0, value=None, placeholder="Rate...")
-                unified_party_rate = st.number_input("Party Collection Scale (per Choki):", min_value=0.0, value=None, placeholder="Rate...")
+                choki_count = st.number_input("Total Handled Choki Units:", min_value=0, value=int(edit_work_row.get("Choki", 0)) if is_editing_work else 0, step=1)
+                generic_op_rate = st.number_input("Operator Pay Scale (per Choki):", min_value=0.0, value=float(edit_work_row.get("Operator Rate", 0.0)) if is_editing_work else None, placeholder="Rate...")
+                unified_party_rate = st.number_input("Party Collection Scale (per Choki):", min_value=0.0, value=float(edit_work_row.get("Party Rate", 0.0)) if is_editing_work else None, placeholder="Rate...")
                 
-            if st.form_submit_button("Commit Production Entry to Records"):
+            btn_label_prod = "Update Production Entry" if is_editing_work else "Commit Production Entry to Records"
+            if st.form_submit_button(btn_label_prod):
                 clear_all_messages()
                 if not st.session_state.sel_op or not prod_party:
                     st.error("Operator aur Party selection absolute mandatory hai!")
@@ -599,6 +673,7 @@ else:
                         calculated_op_amount = float((carat_20_weight * op_rate_20_up) + (carat_1_weight * op_rate_1_up))
                         calculated_party_amount = float((carat_20_weight + carat_1_weight) * unified_party_rate)
                         final_op_rate_logged = 0.0
+                        pcs_count = pcs_20_up + pcs_1_up
                     else:
                         calculated_op_amount = float(choki_count * generic_op_rate)
                         calculated_party_amount = float(choki_count * unified_party_rate)
@@ -607,21 +682,35 @@ else:
                     new_production_row = {
                         "Date": str(prod_date), "Operator": st.session_state.sel_op, "Party": prod_party,
                         "Work Type": st.session_state.sel_wt, "Pcs": int(pcs_count),
+                        "Pcs_20_Up": int(pcs_20_up), "Pcs_1_Up": int(pcs_1_up),
                         "Carat_20_Up": float(carat_20_weight), "Carat_1_Up": float(carat_1_weight), "Choki": int(choki_count),
                         "Op_Rate_20_Up": float(op_rate_20_up), "Op_Rate_1_Up": float(op_rate_1_up), 
                         "Operator Rate": float(final_op_rate_logged), "Party Rate": float(unified_party_rate),
                         "Operator Amount": float(calculated_op_amount), "Party Amount": float(calculated_party_amount)
                     }
-                    df_work = pd.concat([df_work, pd.DataFrame([new_production_row])], ignore_index=True)
+                    if is_editing_work:
+                        df_work.iloc[st.session_state.edit_id] = new_production_row
+                        cancel_edit()
+                        st.session_state.msg_work = "✔ Production Log Entry Updated!"
+                    else:
+                        df_work = pd.concat([df_work, pd.DataFrame([new_production_row])], ignore_index=True)
+                        st.session_state.msg_work = "✔ Daily Production Entry Tracked Matrix Confirmed!"
                     save_data(df_work, DAILY_WORK_FILE)
-                    st.session_state.msg_work = "✔ Daily Production Entry Tracked Matrix Confirmed!"
                     st.rerun()
+            
+            if is_editing_work and st.form_submit_button("Cancel Edit Mode"):
+                cancel_edit()
+                st.rerun()
             
             if st.session_state.msg_work:
                 st.markdown(f'<div class="inline-success">{st.session_state.msg_work}</div>', unsafe_allow_html=True)
 
     with upad_column:
         st.markdown("### 💸 Operator Salary Advances Framework (Upad)")
+        
+        if is_editing_upad:
+            st.session_state.sel_u_op = edit_upad_row.get("Operator", "")
+            st.session_state.sel_pm = edit_upad_row.get("Payment Mode", "Cash")
         
         st.markdown("<p style='margin-bottom:2px; color:#ff9900;'>Select Upad Operator Target:</p>", unsafe_allow_html=True)
         if operator_options:
@@ -649,20 +738,30 @@ else:
             st.rerun()
             
         with st.form("upad_data_capture_form"):
-            upad_date = st.date_input("Advance Disbursal Date:", key="upad_f_date")
-            upad_amount = st.number_input("Disbursed Amount (₹):", min_value=0.0, step=100.0, value=None)
-            upad_remark = st.text_area("Reference Note:")
+            upad_date = st.date_input("Advance Disbursal Date:", value=datetime.strptime(edit_upad_row["Date"], "%Y-%m-%d").date() if is_editing_upad else datetime.today().date())
+            upad_amount = st.number_input("Disbursed Amount (₹):", min_value=0.0, step=100.0, value=float(edit_upad_row.get("Amount", 0.0)) if is_editing_upad else None)
+            upad_remark = st.text_area("Reference Note:", value=edit_upad_row.get("Remark", "") if is_editing_upad else "")
             
-            if st.form_submit_button("Log Operator Advance Transaction"):
+            btn_label_upad = "Update Advance Entry" if is_editing_upad else "Log Operator Advance Transaction"
+            if st.form_submit_button(btn_label_upad):
                 clear_all_messages()
                 if not st.session_state.sel_u_op or upad_amount is None:
                     st.error("Operator Name reference details or Amount are blank!")
                 else:
                     new_upad_row = {"Date": str(upad_date), "Operator": st.session_state.sel_u_op, "Amount": float(upad_amount), "Payment Mode": st.session_state.sel_pm, "Remark": upad_remark.strip()}
-                    df_upad = pd.concat([df_upad, pd.DataFrame([new_upad_row])], ignore_index=True)
+                    if is_editing_upad:
+                        df_upad.iloc[st.session_state.edit_id] = new_upad_row
+                        cancel_edit()
+                        st.session_state.msg_upad = "✔ Advance Upad Record Updated!"
+                    else:
+                        df_upad = pd.concat([df_upad, pd.DataFrame([new_upad_row])], ignore_index=True)
+                        st.session_state.msg_upad = "✔ Advance Upad Record Registered!"
                     save_data(df_upad, OP_UPAD_FILE)
-                    st.session_state.msg_upad = "✔ Advance Upad Record Registered!"
                     st.rerun()
+                    
+            if is_editing_upad and st.form_submit_button("Cancel Upad Edit"):
+                cancel_edit()
+                st.rerun()
                     
             if st.session_state.msg_upad:
                 st.markdown(f'<div class="inline-success">{st.session_state.msg_upad}</div>', unsafe_allow_html=True)
@@ -686,15 +785,28 @@ else:
             if not op_production_subset.empty:
                 for target_idx, table_row in op_production_subset.iterrows():
                     with st.container():
-                        cx1, cx2, cx3, cx4, cx5 = st.columns([1.5, 3.5, 2.0, 1.5, 1.5])
+                        cx1, cx2, cx3, cx4, cx5, cx6 = st.columns([1.5, 3.5, 2.0, 1.2, 0.9, 0.9])
                         cx1.write(f"📅 `{table_row['Date']}`")
-                        cx2.write(f"**Party:** {table_row['Party']} | **Type:** {table_row['Work Type']} | **Pcs:** {int(table_row['Pcs'])}")
+                        
+                        pcs_info = f"**Total PC:** {int(table_row['Pcs'])}"
+                        if table_row['Work Type'] == "Carat":
+                            pcs_info = f"**+20 PC:** {int(table_row.get('Pcs_20_Up', 0))} | **+1 PC:** {int(table_row.get('Pcs_1_Up', 0))}"
+                            
+                        cx2.write(f"**Party:** {table_row['Party']} | **Type:** {table_row['Work Type']} | {pcs_info}")
                         cx3.markdown(f"Op Earning: **₹{table_row['Operator Amount']:.2f}**")
                         
                         wa_txt = f"Work Receipt ({filter_operator_target}):\nDate: {table_row['Date']}\nType: {table_row['Work Type']}\nPcs: {table_row['Pcs']}\nEarnings: ₹{table_row['Operator Amount']}"
-                        cx4.markdown(f"<a href='https://wa.me/?text={urllib.parse.quote(wa_txt)}' target='_blank'><button style='background-color:#25D366; border:none; color:white; border-radius:4px;'>💬 WhatsApp</button></a>", unsafe_allow_html=True)
+                        cx4.markdown(f"<a href='https://wa.me/?text={urllib.parse.quote(wa_txt)}' target='_blank'><button style='background-color:#25D366; border:none; color:white; border-radius:4px; width:100%;'>💬 WA</button></a>", unsafe_allow_html=True)
                         
-                        if cx5.button("❌ Delete", key=f"del_op_work_row_{target_idx}"):
+                        if cx5.button("✏️ Edit", key=f"edit_op_work_row_{target_idx}"):
+                            # Map filtered index to original DataFrame index
+                            actual_df_idx = df_work[(df_work["Operator"] == filter_operator_target)].index[target_idx]
+                            st.session_state.edit_id = actual_df_idx
+                            st.session_state.edit_section = "Work"
+                            st.session_state.edit_data = table_row.to_dict()
+                            st.rerun()
+                            
+                        if cx6.button("❌ Delete", key=f"del_op_work_row_{target_idx}"):
                             clear_all_messages()
                             actual_df_idx = df_work[(df_work["Operator"] == filter_operator_target)].index[target_idx]
                             df_work = df_work.drop(actual_df_idx).reset_index(drop=True)
@@ -707,12 +819,19 @@ else:
             if not op_upad_subset.empty:
                 for target_u_idx, u_row in op_upad_subset.iterrows():
                     with st.container():
-                        ux1, ux2, ux3, ux4 = st.columns([2, 4, 3, 3])
+                        ux1, ux2, ux3, ux4, ux5 = st.columns([1.5, 3.5, 2.0, 1.0, 1.0])
                         ux1.write(f"📅 `{u_row['Date']}`")
                         ux2.write(f"**Mode:** {u_row['Payment Mode']} | **Note:** {u_row['Remark']}")
                         ux3.markdown(f"Draw Amount: <span style='color:#ff5555; font-weight:bold;'>₹{u_row['Amount']:.2f}</span>", unsafe_allow_html=True)
                         
-                        if ux4.button("❌ Delete", key=f"del_op_upad_row_{target_u_idx}"):
+                        if ux4.button("✏️ Edit", key=f"edit_op_upad_row_{target_u_idx}"):
+                            actual_df_u_idx = df_upad[(df_upad["Operator"] == filter_operator_target)].index[target_u_idx]
+                            st.session_state.edit_id = actual_df_u_idx
+                            st.session_state.edit_section = "Upad"
+                            st.session_state.edit_data = u_row.to_dict()
+                            st.rerun()
+                            
+                        if ux5.button("❌ Delete", key=f"del_op_upad_row_{target_u_idx}"):
                             clear_all_messages()
                             actual_df_u_idx = df_upad[(df_upad["Operator"] == filter_operator_target)].index[target_u_idx]
                             df_upad = df_upad.drop(actual_df_u_idx).reset_index(drop=True)
@@ -731,7 +850,7 @@ else:
             stat_c3.metric("Net Salary Outstanding Payable Balance", f"₹{net_payable_salary:.2f}")
             
             if not op_production_subset.empty:
-                pdf_op_blob = generate_pdf_document(op_production_subset[["Date", "Party", "Work Type", "Pcs", "Carat_20_Up", "Carat_1_Up", "Operator Amount"]], f"Production Statement For {filter_operator_target}")
+                pdf_op_blob = generate_pdf_document(op_production_subset[["Date", "Party", "Work Type", "Pcs", "Pcs_20_Up", "Pcs_1_Up", "Carat_20_Up", "Carat_1_Up", "Operator Amount"]], f"Production Statement For {filter_operator_target}")
                 st.download_button(f"📥 Download {filter_operator_target} PDF Statement", data=pdf_op_blob, file_name=f"{filter_operator_target}_Invoice.pdf", mime="application/pdf")
 
     elif selected_view_ledger == "Client Party Outstanding Receivables Balances" and not df_work.empty:
@@ -742,15 +861,27 @@ else:
             
             for party_idx, p_row in party_billings_subset.iterrows():
                 with st.container():
-                    px1, px2, px3, px4, px5 = st.columns([1.5, 3.5, 2.0, 1.5, 1.5])
+                    px1, px2, px3, px4, px5, px6 = st.columns([1.5, 3.5, 2.0, 1.2, 0.9, 0.9])
                     px1.write(f"📅 `{p_row['Date']}`")
-                    px2.write(f"**Operator:** {p_row['Operator']} | **Profile Matrix Type:** {p_row['Work Type']} | **Pcs:** {p_row['Pcs']}")
+                    
+                    pcs_info = f"**Pcs:** {p_row['Pcs']}"
+                    if p_row['Work Type'] == "Carat":
+                        pcs_info = f"**+20 PC:** {int(p_row.get('Pcs_20_Up', 0))} | **+1 PC:** {int(p_row.get('Pcs_1_Up', 0))}"
+                        
+                    px2.write(f"**Operator:** {p_row['Operator']} | **Profile Matrix Type:** {p_row['Work Type']} | {pcs_info}")
                     px3.markdown(f"Receivable Amt: **₹{p_row['Party Amount']:.2f}**")
                     
                     wa_party_msg = f"Invoice Statement Alert ({filter_party_target}):\nDate: {p_row['Date']}\nProduction Class Type: {p_row['Work Type']}\nCalculated Total Receivable: ₹{p_row['Party Amount']}"
-                    px4.markdown(f"<a href='https://wa.me/?text={urllib.parse.quote(wa_party_msg)}' target='_blank'><button style='background-color:#25D366; border:none; color:white; border-radius:4px;'>💬 WhatsApp</button></a>", unsafe_allow_html=True)
+                    px4.markdown(f"<a href='https://wa.me/?text={urllib.parse.quote(wa_party_msg)}' target='_blank'><button style='background-color:#25D366; border:none; color:white; border-radius:4px; width:100%;'>💬 WA</button></a>", unsafe_allow_html=True)
                     
-                    if px5.button("❌ Delete Log Record", key=f"del_party_work_row_{party_idx}"):
+                    if px5.button("✏️ Edit", key=f"edit_party_work_row_{party_idx}"):
+                        actual_df_p_idx = df_work[(df_work["Party"] == filter_party_target)].index[party_idx]
+                        st.session_state.edit_id = actual_df_p_idx
+                        st.session_state.edit_section = "Work"
+                        st.session_state.edit_data = p_row.to_dict()
+                        st.rerun()
+                        
+                    if px6.button("❌ Delete Log Record", key=f"del_party_work_row_{party_idx}"):
                         clear_all_messages()
                         actual_df_p_idx = df_work[(df_work["Party"] == filter_party_target)].index[party_idx]
                         df_work = df_work.drop(actual_df_p_idx).reset_index(drop=True)
@@ -761,14 +892,14 @@ else:
             st.markdown("---")
             st.metric("Total Consolidated Account Receivables Outstanding Balance", f"₹{party_billings_subset['Party Amount'].sum():.2f}")
             
-            pdf_pt_blob = generate_pdf_document(party_billings_subset[["Date", "Operator", "Work Type", "Pcs", "Carat_20_Up", "Carat_1_Up", "Party Rate", "Party Amount"]], f"Account Ledger Statement For {filter_party_target}")
+            pdf_pt_blob = generate_pdf_document(party_billings_subset[["Date", "Operator", "Work Type", "Pcs", "Pcs_20_Up", "Pcs_1_Up", "Carat_20_Up", "Carat_1_Up", "Party Rate", "Party Amount"]], f"Account Ledger Statement For {filter_party_target}")
             st.download_button(f"📥 Download {filter_party_target} Statement PDF Invoice", data=pdf_pt_blob, file_name=f"Party_{filter_party_target}_Ledger.pdf", mime="application/pdf")
 
     else:
         st.markdown("#### Complete Global Audit Raw Matrix Logs")
         if not df_work.empty:
-            df_work = df_work.sort_values(by="Date", ascending=False).reset_index(drop=True)
-            display_work_df = df_work.copy()
+            df_work_show = df_work.sort_values(by="Date", ascending=False).reset_index(drop=True)
+            display_work_df = df_work_show.copy()
             display_work_df.index = display_work_df.index + 1
             st.dataframe(display_work_df)
         else:
