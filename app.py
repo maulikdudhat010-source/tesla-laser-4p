@@ -367,8 +367,8 @@ if app_route == "(1) Office Expense Master":
             
             in_amount = st.number_input("Collected Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else None, placeholder="Type amount directly...", key=f"off_in_amt_{Token}")
             in_phone = st.text_input("WhatsApp Number (10 Digits):", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_ph_{Token}")
-            in_remark = st.text_area("Entry Remarks / Context:", value=edit_office_row.get("Remark", "") if (is_editing_office/ edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_rem_{Token}")
-            
+            remark_default = edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row) else ""
+            in_remark = st.text_area("Entry Remarks / Context:", value=remark_default)           
             sub_label = "Update Cash Inward" if is_editing_office else "Save Cash Inward"
             if st.form_submit_button(sub_label):
                 clear_all_messages()
