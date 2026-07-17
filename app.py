@@ -281,14 +281,13 @@ st.sidebar.markdown("<h2 style='color:#61afef; text-align: center; margin-bottom
 st.sidebar.markdown("<p style='text-align: center; font-size:11px; color:#ff9900;'>Industrial 4P Engine Panel</p>", unsafe_allow_html=True)
 st.sidebar.markdown("---")
 
-# --- POWERFUL NAVIGATION RESET VECTOR (FORCE RE-INITIALIZATION) ---
 if st.sidebar.button("🏠 Back to Main Dashboard / Clear View", key="global_dashboard_reset_trigger", use_container_width=True):
     cancel_edit()
     clear_all_messages()
     st.session_state.sel_op = ""
     st.session_state.sel_u_op = ""
     st.toast("🔄 Dashboard Reset Successfully!", icon="🏠")
-    st.experimental_set_query_params() # URL resets for forceful UI reload
+    st.experimental_set_query_params() 
     st.rerun()
 
 st.sidebar.markdown("---")
@@ -365,7 +364,7 @@ if app_route == "(1) Office Expense Master":
                     st.error("Nam aur Amount bharna mandatory hai!")
                 else:
                     new_log = {"Date": str(in_date), "Type": "Income (Aaya)", "Name": in_name.strip(), "Amount": float(in_amount), "Phone": str(in_phone).strip(), "Remark": in_remark.strip()}
-                    if is_editing_office:
+                    if is_editing_office and edit_office_row.get("Type") == "Income (Aaya)":
                         df_office.iloc[st.session_state.edit_id] = new_log
                         cancel_edit()
                         st.session_state.msg_off_inc = "✔ Entry Updated Successfully!"
@@ -376,7 +375,7 @@ if app_route == "(1) Office Expense Master":
                     trigger_form_reset()
                     st.rerun()
             
-            if is_editing_office and st.form_submit_button("Cancel Edit"):
+            if is_editing_office and st.form_submit_button("Cancel Edit", key="cancel_in_edit"):
                 cancel_edit()
                 trigger_form_reset()
                 st.rerun()
@@ -393,55 +392,40 @@ if app_route == "(1) Office Expense Master":
             
             out_amount = st.number_input("Paid Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else None, placeholder="Type amount directly...", key=f"off_exp_amt_{Token}")
             out_phone = st.text_input("WhatsApp Number:", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "", key=f"off_exp_ph_{Token}")
-          # ==========================================
-# LINE 396 ONWARDS (REPLACE FULL BLOCK HERE)
-# ==========================================
-
-if 'is_editing_office_purchases' in locals() and is_editing_office_purchases:
-    if 'edit_office_row' in locals() and hasattr(edit_office_row, 'get'):
-        default_remark = edit_office_row.get("Remark", "")
-    else:
-        default_remark = ""
-else:
-    if 'edit_factory_row' in locals() and hasattr(edit_factory_row, 'get'):
-        default_remark = edit_factory_row.get("Remark", "")
-    else:
-        default_remark = ""
-
-out_remark = st.text_area("Purpose / Remark:", value=default_remark)
-
-# --- Check and define is_editing_office safely ---
-is_editing_office_flag = is_editing_office if 'is_editing_office' in locals() else False
-
-sub_label_exp = "Update Cash Outward" if is_editing_office_flag else "Save Cash Outward"
-
-# --- Form Submit Button and Logic ---
-if st.form_submit_button(sub_label_exp):
-    clear_all_messages()
-    if not out_name or out_amount is None:
-        st.error("Nam aur Amount fields blank nahi chod sakte!")
-    else:
-        new_log = {
-            "Date": str(out_date), 
-            "Type": "Expense (Gaya)", 
-            "Name": out_name.strip(), 
-            "Amount": float(out_amount),
-            "Remark": out_remark
-        }
-        
-        if 'is_editing_office' in locals() and is_editing_office:
-            df_office.iloc[st.session_state.edit_id] = new_log
-            cancel_edit()
-            st.session_state.msg_off_exp = "✓ Entry Updated Successfully!"
-        else:
-            # यहाँ आपका फैक्ट्री वाला या एल्स का बाकी कोड आएगा (अगर इसके नीचे कोई कोड था)
-            pass
+            
+            default_remark = edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else ""
+            out_remark = st.text_area("Purpose / Remark:", value=default_remark, key=f"off_exp_rem_{Token}")
+            
+            sub_label_exp = "Update Cash Outward" if is_editing_office else "Save Cash Outward"
+            if st.form_submit_button(sub_label_exp):
+                clear_all_messages()
+                if not out_name or out_amount is None:
+                    st.error("Nam aur Amount fields blank nahi chod sakte!")
+                else:
+                    new_log = {
+                        "Date": str(out_date), 
+                        "Type": "Expense (Gaya)", 
+                        "Name": out_name.strip(), 
+                        "Amount": float(out_amount),
+                        "Phone": str(out_phone).strip(),
+                        "Remark": out_remark.strip()
+                    }
+                    if is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)":
+                        df_office.iloc[st.session_state.edit_id] = new_log
+                        cancel_edit()
+                        st.session_state.msg_off_exp = "✓ Entry Updated Successfully!"
+                    else:
                         df_office = pd.concat([df_office, pd.DataFrame([new_log])], ignore_index=True)
                         st.session_state.msg_off_exp = "✔ Expense Entry Tracked Successfully!"
                     save_data(df_office, OFFICE_FILE)
                     trigger_form_reset()
                     st.rerun()
             
+            if is_editing_office and st.form_submit_button("Cancel Edit", key="cancel_out_edit"):
+                cancel_edit()
+                trigger_form_reset()
+                st.rerun()
+
             if st.session_state.msg_off_exp:
                 st.markdown(f'<div class="inline-success">{st.session_state.msg_off_exp}</div>', unsafe_allow_html=True)
 
@@ -516,7 +500,7 @@ elif app_route == "(2) Home Expense Master":
                     st.error("Mandatory entries complete karein!")
                 else:
                     new_record = {"Date": str(h_in_date), "Type": "Income (Aaya)", "Name": h_in_name.strip(), "Amount": float(h_in_amount), "Phone": str(h_in_phone).strip(), "Remark": h_in_remark.strip()}
-                    if is_editing_home:
+                    if is_editing_home and edit_home_row.get("Type") == "Income (Aaya)":
                         df_home.iloc[st.session_state.edit_id] = new_record
                         cancel_edit()
                         st.session_state.msg_hm_inc = "✔ Entry Updated Successfully!"
@@ -527,7 +511,7 @@ elif app_route == "(2) Home Expense Master":
                     trigger_form_reset()
                     st.rerun()
             
-            if is_editing_home and st.form_submit_button("Cancel Edit"):
+            if is_editing_home and st.form_submit_button("Cancel Edit", key="cancel_hm_in_edit"):
                 cancel_edit()
                 trigger_form_reset()
                 st.rerun()
@@ -552,7 +536,7 @@ elif app_route == "(2) Home Expense Master":
                     st.error("Data inputs verified empty!")
                 else:
                     new_record = {"Date": str(h_out_date), "Type": "Expense (Gaya)", "Name": h_out_name.strip(), "Amount": float(h_out_amount), "Phone": str(h_out_phone).strip(), "Remark": h_out_remark.strip()}
-                    if is_editing_home:
+                    if is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)":
                         df_home.iloc[st.session_state.edit_id] = new_record
                         cancel_edit()
                         st.session_state.msg_hm_exp = "✔ Entry Updated Successfully!"
@@ -563,6 +547,11 @@ elif app_route == "(2) Home Expense Master":
                     trigger_form_reset()
                     st.rerun()
             
+            if is_editing_home and st.form_submit_button("Cancel Edit", key="cancel_hm_exp_edit"):
+                cancel_edit()
+                trigger_form_reset()
+                st.rerun()
+
             if st.session_state.msg_hm_exp:
                 st.markdown(f'<div class="inline-success">{st.session_state.msg_hm_exp}</div>', unsafe_allow_html=True)
 
@@ -721,6 +710,11 @@ else:
             carat_1_weight = 0.0
             choki_count = 0
             
+            generic_op_rate = 0.0
+            unified_party_rate = 0.0
+            op_rate_20_up = 0.0
+            op_rate_1_up = 0.0
+
             if st.session_state.sel_wt == "PC":
                 pcs_count = st.number_input("Total Processed PC Count:", min_value=0, value=int(edit_work_row.get("Pcs")) if is_editing_work else None, placeholder="Type count...", step=1, key=f"prod_pcs_{Token}")
                 
@@ -811,7 +805,7 @@ else:
                     trigger_form_reset()
                     st.rerun()
             
-            if is_editing_work and st.form_submit_button("Cancel Edit Mode"):
+            if is_editing_work and st.form_submit_button("Cancel Edit Mode", key="cancel_prod_edit"):
                 cancel_edit()
                 trigger_form_reset()
                 st.rerun()
@@ -874,7 +868,7 @@ else:
                     trigger_form_reset()
                     st.rerun()
                     
-            if is_editing_upad and st.form_submit_button("Cancel Upad Edit"):
+            if is_editing_upad and st.form_submit_button("Cancel Upad Edit", key="cancel_upad_edit_btn"):
                 cancel_edit()
                 trigger_form_reset()
                 st.rerun()
