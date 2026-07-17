@@ -11,32 +11,28 @@ import io
 import streamlit.components.v1 as components
 
 # ==========================================
-# 1. PAGE CONFIGURATION & STYLING (FIXED BUTTONS & COLORS)
+# 1. PAGE CONFIGURATION & STYLING
 # ==========================================
 st.set_page_config(page_title="Tesla Laser 4P Management Pro", page_icon="💎", layout="wide")
 
 st.markdown("""
     <style>
-    /* Streamlit Defaults Cleaning */
     #MainMenu {visibility: hidden !important;}
     footer {visibility: hidden !important;}
     header {visibility: hidden !important;}
     .stAppDeployButton {display: none !important;}
     [data-testid="stHeader"] {display: none !important;}
     
-    /* Global Visual Base */
     .stApp {
         background-color: #111418 !important;
         color: #ffffff !important;
     }
     
-    /* Left Sidebar Indicator */
     section[data-testid="stSidebar"] {
         background-color: #0b0d10 !important;
         border-right: 3px solid #61afef !important;
     }
     
-    /* Input Container Styling */
     div[data-testid="stForm"], .stAlert {
         background-color: #1c2026 !important;
         border: 2px solid #2d333f !important;
@@ -44,7 +40,6 @@ st.markdown("""
         padding: 20px !important;
     }
     
-    /* High Visibility Typography & Labels */
     label, p, span, .stMetric div {
         color: #ffffff !important;
         font-weight: 600 !important;
@@ -56,7 +51,6 @@ st.markdown("""
         font-weight: 800 !important;
     }
     
-    /* Form Input Fields & Buttons Text Visibility Fix */
     input, select, textarea, div[data-baseweb="input"] input, div[data-baseweb="select"] {
         background-color: #111418 !important;
         color: #ffffff !important;
@@ -68,12 +62,10 @@ st.markdown("""
         border-color: #61afef !important;
     }
 
-    /* Target right side option text visibility & search drop-downs */
     div[data-baseweb="select"] * {
         color: #ffffff !important;
     }
     
-    /* FIXED: ALL BUTTONS STYLE (No more white hidden boxes) */
     button, 
     .stButton > button, 
     [data-testid="stFormSubmitButton"] button, 
@@ -91,7 +83,6 @@ st.markdown("""
         width: auto;
     }
     
-    /* Hover state for all buttons */
     button:hover, 
     .stButton > button:hover, 
     [data-testid="stFormSubmitButton"] button:hover {
@@ -101,7 +92,6 @@ st.markdown("""
         cursor: pointer;
     }
     
-    /* Clear Visible Notification Blocks */
     .inline-success {
         background-color: #1b2e1e !important;
         color: #7cfc00 !important;
@@ -143,6 +133,17 @@ if 'edit_id' not in st.session_state: st.session_state.edit_id = None
 if 'edit_section' not in st.session_state: st.session_state.edit_section = ""
 if 'edit_data' not in st.session_state: st.session_state.edit_data = {}
 
+# RATE LOCK SYSTEM INITIALIZATION
+if 'locked_op_rate_pc' not in st.session_state: st.session_state.locked_op_rate_pc = 0.0
+if 'locked_party_rate_pc' not in st.session_state: st.session_state.locked_party_rate_pc = 0.0
+
+if 'locked_op_rate_20_up' not in st.session_state: st.session_state.locked_op_rate_20_up = 0.0
+if 'locked_op_rate_1_up' not in st.session_state: st.session_state.locked_op_rate_1_up = 0.0
+if 'locked_party_rate_carat' not in st.session_state: st.session_state.locked_party_rate_carat = 0.0
+
+if 'locked_op_rate_choki' not in st.session_state: st.session_state.locked_op_rate_choki = 0.0
+if 'locked_party_rate_choki' not in st.session_state: st.session_state.locked_party_rate_choki = 0.0
+
 def clear_all_messages():
     st.session_state.msg_off_inc = ""
     st.session_state.msg_off_exp = ""
@@ -163,7 +164,6 @@ def load_data(file_path, base_columns):
     if os.path.exists(file_path):
         try:
             df = pd.read_csv(file_path)
-            # Schema Match synchronization
             for col in base_columns:
                 if col not in df.columns:
                     df[col] = 0.0 if col in ["Amount", "Pcs", "Pcs_20_Up", "Pcs_1_Up", "Carat_20_Up", "Carat_1_Up", "Choki"] else ""
@@ -268,7 +268,7 @@ def native_contact_picker_js(identifier_tag):
     components.html(script_block, height=45)
 
 # ==========================================
-# 6. SIDEBAR SYSTEM NAVIGATION INTERFACE
+# 6. SIDEBAR NAVIGATION & RATE LOCK PANEL
 # ==========================================
 st.sidebar.markdown("<h2 style='color:#61afef; text-align: center; margin-bottom:0;'>💎 Tesla Laser Pro</h2>", unsafe_allow_html=True)
 st.sidebar.markdown("<p style='text-align: center; font-size:11px; color:#ff9900;'>Industrial 4P Engine Panel</p>", unsafe_allow_html=True)
@@ -287,13 +287,45 @@ elif app_route == "(2) Home Expense Master":
 else:
     st.sidebar.markdown("<div style='background-color:#1c2026; padding:10px; border-radius:5px; border-left:4px solid #61afef; text-align:center; font-weight:bold;'>📍 Location: Diamond Production Active</div>", unsafe_allow_html=True)
 
+# SIDEBAR: DEFAULT LOCKED RATES PANEL
+st.sidebar.markdown("---")
+st.sidebar.markdown("<h3 style='color:#ff9900; text-align:center; margin-bottom:10px;'>🔒 Set & Lock Default Rates</h3>", unsafe_allow_html=True)
+
+with st.sidebar.expander("⚙️ Configure Fixed Rates", expanded=True):
+    # Piece Rates
+    st.markdown("**1. Piece (PC) Mode Rates**")
+    locked_op_pc = st.number_input("Operator Rate (PC):", min_value=0.0, value=st.session_state.locked_op_rate_pc, step=0.5, key="sb_op_pc")
+    locked_party_pc = st.number_input("Party Rate (PC):", min_value=0.0, value=st.session_state.locked_party_rate_pc, step=0.5, key="sb_party_pc")
+    
+    st.markdown("---")
+    # Carat Rates
+    st.markdown("**2. Carat Mode Rates**")
+    locked_op_20 = st.number_input("+20 Up Operator Rate:", min_value=0.0, value=st.session_state.locked_op_rate_20_up, step=0.5, key="sb_op_20")
+    locked_op_1 = st.number_input("+1 Operator Rate:", min_value=0.0, value=st.session_state.locked_op_rate_1_up, step=0.5, key="sb_op_1")
+    locked_party_carat = st.number_input("Party Consolidated Rate:", min_value=0.0, value=st.session_state.locked_party_rate_carat, step=0.5, key="sb_party_carat")
+    
+    st.markdown("---")
+    # Choki Rates
+    st.markdown("**3. Choki Mode Rates**")
+    locked_op_choki = st.number_input("Operator Rate (Choki):", min_value=0.0, value=st.session_state.locked_op_rate_choki, step=0.5, key="sb_op_choki")
+    locked_party_choki = st.number_input("Party Rate (Choki):", min_value=0.0, value=st.session_state.locked_party_rate_choki, step=0.5, key="sb_party_choki")
+    
+    if st.button("🔒 Save & Lock All Rates", use_container_width=True):
+        st.session_state.locked_op_rate_pc = locked_op_pc
+        st.session_state.locked_party_rate_pc = locked_party_pc
+        st.session_state.locked_op_rate_20_up = locked_op_20
+        st.session_state.locked_op_rate_1_up = locked_op_1
+        st.session_state.locked_party_rate_carat = locked_party_carat
+        st.session_state.locked_op_rate_choki = locked_op_choki
+        st.session_state.locked_party_rate_choki = locked_party_choki
+        st.toast("✅ Sabhi Rates Lock Kar Diye Gaye Hain!", icon="🔑")
+
 # ==========================================
 # 7. SECTION 1: OFFICE EXPENSE ACCOUNTING
 # ==========================================
 if app_route == "(1) Office Expense Master":
     st.header("🏢 Office Records & Accounting Ledger")
     
-    # Check if Editing Office Data
     is_editing_office = (st.session_state.edit_section == "Office" and st.session_state.edit_id is not None)
     edit_office_row = st.session_state.edit_data if is_editing_office else {}
     
@@ -305,7 +337,9 @@ if app_route == "(1) Office Expense Master":
         with st.form("office_income_capture_form"):
             in_date = st.date_input("Date:", value=datetime.strptime(edit_office_row["Date"], "%Y-%m-%d").date() if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else datetime.today().date())
             in_name = st.text_input("Source Name / Party:", value=edit_office_row.get("Name", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "")
-            in_amount = st.number_input("Collected Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount", 0.0)) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else None)
+            
+            # Value is None if not editing so it stays empty (no 0.00 clear headache)
+            in_amount = st.number_input("Collected Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else None, placeholder="Type amount directly...")
             in_phone = st.text_input("WhatsApp Number (10 Digits):", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "")
             in_remark = st.text_area("Entry Remarks / Context:", value=edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "")
             
@@ -339,7 +373,8 @@ if app_route == "(1) Office Expense Master":
         with st.form("office_expense_capture_form"):
             out_date = st.date_input("Date:", value=datetime.strptime(edit_office_row["Date"], "%Y-%m-%d").date() if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else datetime.today().date())
             out_name = st.text_input("Recipient / Vendor Name:", value=edit_office_row.get("Name", "") if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "")
-            out_amount = st.number_input("Paid Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount", 0.0)) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else None)
+            
+            out_amount = st.number_input("Paid Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else None, placeholder="Type amount directly...")
             out_phone = st.text_input("WhatsApp Number:", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "")
             out_remark = st.text_area("Purpose / Remark:", value=edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "")
             
@@ -411,7 +446,6 @@ if app_route == "(1) Office Expense Master":
 elif app_route == "(2) Home Expense Master":
     st.header("🏡 Home Personal Accounting Desk")
     
-    # Check if Editing Home Data
     is_editing_home = (st.session_state.edit_section == "Home" and st.session_state.edit_id is not None)
     edit_home_row = st.session_state.edit_data if is_editing_home else {}
     
@@ -422,9 +456,10 @@ elif app_route == "(2) Home Expense Master":
         with st.form("home_income_form"):
             h_in_date = st.date_input("Date:", value=datetime.strptime(edit_home_row["Date"], "%Y-%m-%d").date() if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else datetime.today().date())
             h_in_name = st.text_input("Source Name:", value=edit_home_row.get("Name", "") if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else "")
-            h_in_amount = st.number_input("Amount (₹):", min_value=0.0, step=100.0, value=float(edit_home_row.get("Amount", 0.0)) if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else None)
+            
+            h_in_amount = st.number_input("Amount (₹):", min_value=0.0, step=100.0, value=float(edit_home_row.get("Amount")) if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else None, placeholder="Type amount directly...")
             h_in_phone = st.text_input("Phone Reference:", value=str(edit_home_row.get("Phone", "")) if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else "")
-            h_in_remark = st.text_area("Notes:", value=edit_home_row.get("Remark", "") if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else "")
+            h_in_remark = st.text_area("Notes:", value=edit_home_row.get("Remark", "") if (is_editing_home villages=True and edit_home_row.get("Type") == "Income (Aaya)") else "")
             
             sub_label_hi = "Update Home Inward" if is_editing_home else "Commit Home Inward Record"
             if st.form_submit_button(sub_label_hi):
@@ -455,7 +490,8 @@ elif app_route == "(2) Home Expense Master":
         with st.form("home_expense_form"):
             h_out_date = st.date_input("Date:", value=datetime.strptime(edit_home_row["Date"], "%Y-%m-%d").date() if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else datetime.today().date())
             h_out_name = st.text_input("Expense Title / Context:", value=edit_home_row.get("Name", "") if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else "")
-            h_out_amount = st.number_input("Spent Amount (₹):", min_value=0.0, step=50.0, value=float(edit_home_row.get("Amount", 0.0)) if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else None)
+            
+            h_out_amount = st.number_input("Spent Amount (₹):", min_value=0.0, step=50.0, value=float(edit_home_row.get("Amount")) if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else None, placeholder="Type amount directly...")
             h_out_phone = st.text_input("Phone:", value=str(edit_home_row.get("Phone", "")) if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else "")
             h_out_remark = st.text_area("Detail Description:", value=edit_home_row.get("Remark", "") if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else "")
             
@@ -562,7 +598,6 @@ else:
 
     st.markdown("---")
     
-    # Check if Editing Production or Upad
     is_editing_work = (st.session_state.edit_section == "Work" and st.session_state.edit_id is not None)
     edit_work_row = st.session_state.edit_data if is_editing_work else {}
     
@@ -574,12 +609,11 @@ else:
     with input_column:
         st.markdown("### 📝 Daily Diamond Production Log")
         
-        # Set default values from edit action if applicable
         if is_editing_work:
             st.session_state.sel_op = edit_work_row.get("Operator", "")
             st.session_state.sel_wt = edit_work_row.get("Work Type", "PC")
         
-        # 1. Operator Selection Layout Grid with Active Highlight
+        # 1. Operator Select Panel
         st.markdown("<p style='margin-bottom:2px; color:#ff9900;'>Select Working Operator:</p>", unsafe_allow_html=True)
         if operator_options:
             op_grid_cols = st.columns(max(len(operator_options), 1))
@@ -594,7 +628,7 @@ else:
         else:
             st.error("Upar master register me operator add karein pehle!")
             
-        # 2. Category selection panel with Active Highlight
+        # 2. Category selection
         st.markdown("<p style='margin-top:8px; margin-bottom:2px; color:#61afef;'>Select Active Work Parameters Class:</p>", unsafe_allow_html=True)
         wt_c1, wt_c2, wt_c3 = st.columns(3)
         
@@ -618,11 +652,10 @@ else:
 
         st.info(f"⚡ Current Configuration -> Operator: **{st.session_state.sel_op}** | Batch Profile Mode: **{st.session_state.sel_wt}**")
         
-        # Main Entry Capture Submission Form
+        # Production entry form
         with st.form("production_main_data_capture_form"):
             prod_date = st.date_input("Processing Entry Date:", value=datetime.strptime(edit_work_row["Date"], "%Y-%m-%d").date() if is_editing_work else datetime.today().date())
             
-            # Find default party index for selectbox
             default_party_idx = 0
             if is_editing_work and edit_work_row.get("Party") in party_options:
                 default_party_idx = party_options.index(edit_work_row.get("Party"))
@@ -635,67 +668,88 @@ else:
             carat_1_weight = 0.0
             choki_count = 0
             
-            op_rate_20_up, op_rate_1_up, generic_op_rate, unified_party_rate = 0.0, 0.0, None, None
-            
+            # Applying locked default values and placeholder configs to prevent typing friction
             if st.session_state.sel_wt == "PC":
-                pcs_count = st.number_input("Total Processed PC Count:", min_value=0, value=int(edit_work_row.get("Pcs", 0)) if is_editing_work else 0, step=1)
-                generic_op_rate = st.number_input("Operator Component Rate (per PC):", min_value=0.0, value=float(edit_work_row.get("Operator Rate", 0.0)) if is_editing_work else None, placeholder="Rate dalein...")
-                unified_party_rate = st.number_input("Party Billing Rate (per PC):", min_value=0.0, value=float(edit_work_row.get("Party Rate", 0.0)) if is_editing_work else None, placeholder="Rate dalein...")
+                # Int value using None default value so user gets blank box to type straightaway
+                pcs_count = st.number_input("Total Processed PC Count:", min_value=0, value=int(edit_work_row.get("Pcs")) if is_editing_work else None, placeholder="Type count...", step=1)
+                
+                # Locked value loaded as default. If editing, we use edit row value.
+                default_op_rate_pc = float(edit_work_row.get("Operator Rate", st.session_state.locked_op_rate_pc)) if is_editing_work else st.session_state.locked_op_rate_pc
+                default_party_rate_pc = float(edit_work_row.get("Party Rate", st.session_state.locked_party_rate_pc)) if is_editing_work else st.session_state.locked_party_rate_pc
+                
+                generic_op_rate = st.number_input("Operator Component Rate (per PC):", min_value=0.0, value=default_op_rate_pc, step=0.1)
+                unified_party_rate = st.number_input("Party Billing Rate (per PC):", min_value=0.0, value=default_party_rate_pc, step=0.1)
                 
             elif st.session_state.sel_wt == "Carat":
                 st.markdown("<p style='color:#ff9900; font-weight:bold; margin-bottom: 2px;'>Carat Metrics & Separated PC Boxes:</p>", unsafe_allow_html=True)
                 
                 pc_col1, pc_col2 = st.columns(2)
                 with pc_col1:
-                    pcs_20_up = st.number_input("+20 Up Pcs Count:", min_value=0, value=int(edit_work_row.get("Pcs_20_Up", 0)) if is_editing_work else 0, step=1)
+                    pcs_20_up = st.number_input("+20 Up Pcs Count:", min_value=0, value=int(edit_work_row.get("Pcs_20_Up")) if is_editing_work else None, placeholder="Type count...", step=1)
                 with pc_col2:
-                    pcs_1_up = st.number_input("+1 Carat Pcs Count:", min_value=0, value=int(edit_work_row.get("Pcs_1_Up", 0)) if is_editing_work else 0, step=1)
+                    pcs_1_up = st.number_input("+1 Carat Pcs Count:", min_value=0, value=int(edit_work_row.get("Pcs_1_Up")) if is_editing_work else None, placeholder="Type count...", step=1)
                 
                 wt_col1, wt_col2 = st.columns(2)
                 with wt_col1:
-                    carat_20_weight = st.number_input("+20 Up Raw Carat Weight Value:", min_value=0.0, value=float(edit_work_row.get("Carat_20_Up", 0.0)) if is_editing_work else 0.0, step=0.01, format="%.2f")
-                    op_rate_20_up = st.number_input("+20 Up Operator Pay Rate:", min_value=0.0, value=float(edit_work_row.get("Op_Rate_20_Up", 0.0)) if is_editing_work else 0.0, step=0.1)
+                    carat_20_weight = st.number_input("+20 Up Raw Carat Weight Value:", min_value=0.0, value=float(edit_work_row.get("Carat_20_Up")) if is_editing_work else None, step=0.01, format="%.2f", placeholder="Type weight...")
+                    
+                    default_op_rate_20_up = float(edit_work_row.get("Op_Rate_20_Up", st.session_state.locked_op_rate_20_up)) if is_editing_work else st.session_state.locked_op_rate_20_up
+                    op_rate_20_up = st.number_input("+20 Up Operator Pay Rate:", min_value=0.0, value=default_op_rate_20_up, step=0.1)
                 with wt_col2:
-                    carat_1_weight = st.number_input("+1 Carat Raw Weight Value:", min_value=0.0, value=float(edit_work_row.get("Carat_1_Up", 0.0)) if is_editing_work else 0.0, step=0.01, format="%.2f")
-                    op_rate_1_up = st.number_input("+1 Carat Operator Pay Rate:", min_value=0.0, value=float(edit_work_row.get("Op_Rate_1_Up", 0.0)) if is_editing_work else 0.0, step=0.1)
+                    carat_1_weight = st.number_input("+1 Carat Raw Weight Value:", min_value=0.0, value=float(edit_work_row.get("Carat_1_Up")) if is_editing_work else None, step=0.01, format="%.2f", placeholder="Type weight...")
+                    
+                    default_op_rate_1_up = float(edit_work_row.get("Op_Rate_1_Up", st.session_state.locked_op_rate_1_up)) if is_editing_work else st.session_state.locked_op_rate_1_up
+                    op_rate_1_up = st.number_input("+1 Carat Operator Pay Rate:", min_value=0.0, value=default_op_rate_1_up, step=0.1)
                     
                 st.markdown("<p style='color:#7cfc00; font-weight:bold; margin-bottom: 2px;'>Collective Consolidated Party Evaluation:</p>", unsafe_allow_html=True)
-                unified_party_rate = st.number_input("Consolidated Party Carat Standard Rate:", min_value=0.0, value=float(edit_work_row.get("Party Rate", 0.0)) if is_editing_work else None, placeholder="Total single rate...")
+                
+                default_party_rate_carat = float(edit_work_row.get("Party Rate", st.session_state.locked_party_rate_carat)) if is_editing_work else st.session_state.locked_party_rate_carat
+                unified_party_rate = st.number_input("Consolidated Party Carat Standard Rate:", min_value=0.0, value=default_party_rate_carat, step=0.1)
                 
             else:
-                choki_count = st.number_input("Total Handled Choki Units:", min_value=0, value=int(edit_work_row.get("Choki", 0)) if is_editing_work else 0, step=1)
-                generic_op_rate = st.number_input("Operator Pay Scale (per Choki):", min_value=0.0, value=float(edit_work_row.get("Operator Rate", 0.0)) if is_editing_work else None, placeholder="Rate...")
-                unified_party_rate = st.number_input("Party Collection Scale (per Choki):", min_value=0.0, value=float(edit_work_row.get("Party Rate", 0.0)) if is_editing_work else None, placeholder="Rate...")
+                choki_count = st.number_input("Total Handled Choki Units:", min_value=0, value=int(edit_work_row.get("Choki")) if is_editing_work else None, placeholder="Type count...", step=1)
+                
+                default_op_rate_choki = float(edit_work_row.get("Operator Rate", st.session_state.locked_op_rate_choki)) if is_editing_work else st.session_state.locked_op_rate_choki
+                default_party_rate_choki = float(edit_work_row.get("Party Rate", st.session_state.locked_party_rate_choki)) if is_editing_work else st.session_state.locked_party_rate_choki
+                
+                generic_op_rate = st.number_input("Operator Pay Scale (per Choki):", min_value=0.0, value=default_op_rate_choki, step=0.1)
+                unified_party_rate = st.number_input("Party Collection Scale (per Choki):", min_value=0.0, value=default_party_rate_choki, step=0.1)
                 
             btn_label_prod = "Update Production Entry" if is_editing_work else "Commit Production Entry to Records"
             if st.form_submit_button(btn_label_prod):
                 clear_all_messages()
                 if not st.session_state.sel_op or not prod_party:
                     st.error("Operator aur Party selection absolute mandatory hai!")
-                elif unified_party_rate is None or (st.session_state.sel_wt != "Carat" and generic_op_rate is None):
-                    st.error("Financial rates components missing!")
                 else:
+                    # Sanitize None values to 0 before saving
+                    safe_pcs_count = pcs_count if pcs_count is not None else 0
+                    safe_pcs_20_up = pcs_20_up if pcs_20_up is not None else 0
+                    safe_pcs_1_up = pcs_1_up if pcs_1_up is not None else 0
+                    safe_carat_20_weight = carat_20_weight if carat_20_weight is not None else 0.0
+                    safe_carat_1_weight = carat_1_weight if carat_1_weight is not None else 0.0
+                    safe_choki_count = choki_count if choki_count is not None else 0
+                    
                     if st.session_state.sel_wt == "PC":
-                        calculated_op_amount = float(pcs_count * generic_op_rate)
-                        calculated_party_amount = float(pcs_count * unified_party_rate)
-                        final_op_rate_logged = generic_op_rate
+                        calculated_op_amount = float(safe_pcs_count * (generic_op_rate if generic_op_rate else 0.0))
+                        calculated_party_amount = float(safe_pcs_count * (unified_party_rate if unified_party_rate else 0.0))
+                        final_op_rate_logged = generic_op_rate if generic_op_rate else 0.0
                     elif st.session_state.sel_wt == "Carat":
-                        calculated_op_amount = float((carat_20_weight * op_rate_20_up) + (carat_1_weight * op_rate_1_up))
-                        calculated_party_amount = float((carat_20_weight + carat_1_weight) * unified_party_rate)
+                        calculated_op_amount = float((safe_carat_20_weight * op_rate_20_up) + (safe_carat_1_weight * op_rate_1_up))
+                        calculated_party_amount = float((safe_carat_20_weight + safe_carat_1_weight) * (unified_party_rate if unified_party_rate else 0.0))
                         final_op_rate_logged = 0.0
-                        pcs_count = pcs_20_up + pcs_1_up
+                        safe_pcs_count = safe_pcs_20_up + safe_pcs_1_up
                     else:
-                        calculated_op_amount = float(choki_count * generic_op_rate)
-                        calculated_party_amount = float(choki_count * unified_party_rate)
-                        final_op_rate_logged = generic_op_rate
+                        calculated_op_amount = float(safe_choki_count * (generic_op_rate if generic_op_rate else 0.0))
+                        calculated_party_amount = float(safe_choki_count * (unified_party_rate if unified_party_rate else 0.0))
+                        final_op_rate_logged = generic_op_rate if generic_op_rate else 0.0
                         
                     new_production_row = {
                         "Date": str(prod_date), "Operator": st.session_state.sel_op, "Party": prod_party,
-                        "Work Type": st.session_state.sel_wt, "Pcs": int(pcs_count),
-                        "Pcs_20_Up": int(pcs_20_up), "Pcs_1_Up": int(pcs_1_up),
-                        "Carat_20_Up": float(carat_20_weight), "Carat_1_Up": float(carat_1_weight), "Choki": int(choki_count),
+                        "Work Type": st.session_state.sel_wt, "Pcs": int(safe_pcs_count),
+                        "Pcs_20_Up": int(safe_pcs_20_up), "Pcs_1_Up": int(safe_pcs_1_up),
+                        "Carat_20_Up": float(safe_carat_20_weight), "Carat_1_Up": float(safe_carat_1_weight), "Choki": int(safe_choki_count),
                         "Op_Rate_20_Up": float(op_rate_20_up), "Op_Rate_1_Up": float(op_rate_1_up), 
-                        "Operator Rate": float(final_op_rate_logged), "Party Rate": float(unified_party_rate),
+                        "Operator Rate": float(final_op_rate_logged), "Party Rate": float(unified_party_rate if unified_party_rate else 0.0),
                         "Operator Amount": float(calculated_op_amount), "Party Amount": float(calculated_party_amount)
                     }
                     if is_editing_work:
@@ -749,7 +803,7 @@ else:
             
         with st.form("upad_data_capture_form"):
             upad_date = st.date_input("Advance Disbursal Date:", value=datetime.strptime(edit_upad_row["Date"], "%Y-%m-%d").date() if is_editing_upad else datetime.today().date())
-            upad_amount = st.number_input("Disbursed Amount (₹):", min_value=0.0, step=100.0, value=float(edit_upad_row.get("Amount", 0.0)) if is_editing_upad else None)
+            upad_amount = st.number_input("Disbursed Amount (₹):", min_value=0.0, step=100.0, value=float(edit_upad_row.get("Amount")) if is_editing_upad else None, placeholder="Type Upad amount...")
             upad_remark = st.text_area("Reference Note:", value=edit_upad_row.get("Remark", "") if is_editing_upad else "")
             
             btn_label_upad = "Update Advance Entry" if is_editing_upad else "Log Operator Advance Transaction"
@@ -809,7 +863,6 @@ else:
                         cx4.markdown(f"<a href='https://wa.me/?text={urllib.parse.quote(wa_txt)}' target='_blank'><button style='background-color:#25D366; border:none; color:white; border-radius:4px; width:100%;'>💬 WA</button></a>", unsafe_allow_html=True)
                         
                         if cx5.button("✏️ Edit", key=f"edit_op_work_row_{target_idx}"):
-                            # Map filtered index to original DataFrame index
                             actual_df_idx = df_work[(df_work["Operator"] == filter_operator_target)].index[target_idx]
                             st.session_state.edit_id = actual_df_idx
                             st.session_state.edit_section = "Work"
