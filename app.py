@@ -299,20 +299,17 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("<h3 style='color:#ff9900; text-align:center; margin-bottom:10px;'>🔒 Set & Lock Default Rates</h3>", unsafe_allow_html=True)
 
 with st.sidebar.expander("⚙️ Configure Fixed Rates", expanded=True):
-    # Piece Rates
     st.markdown("**1. Piece (PC) Mode Rates**")
     locked_op_pc = st.number_input("Operator Rate (PC):", min_value=0.0, value=st.session_state.locked_op_rate_pc, step=0.5, key="sb_op_pc")
     locked_party_pc = st.number_input("Party Rate (PC):", min_value=0.0, value=st.session_state.locked_party_rate_pc, step=0.5, key="sb_party_pc")
     
     st.markdown("---")
-    # Carat Rates
     st.markdown("**2. Carat Mode Rates**")
     locked_op_20 = st.number_input("+20 Up Operator Rate:", min_value=0.0, value=st.session_state.locked_op_rate_20_up, step=0.5, key="sb_op_20")
     locked_op_1 = st.number_input("+1 Operator Rate:", min_value=0.0, value=st.session_state.locked_op_rate_1_up, step=0.5, key="sb_op_1")
     locked_party_carat = st.number_input("Party Consolidated Rate:", min_value=0.0, value=st.session_state.locked_party_rate_carat, step=0.5, key="sb_party_carat")
     
     st.markdown("---")
-    # Choki Rates
     st.markdown("**3. Choki Mode Rates**")
     locked_op_choki = st.number_input("Operator Rate (Choki):", min_value=0.0, value=st.session_state.locked_op_rate_choki, step=0.5, key="sb_op_choki")
     locked_party_choki = st.number_input("Party Rate (Choki):", min_value=0.0, value=st.session_state.locked_party_rate_choki, step=0.5, key="sb_party_choki")
@@ -347,7 +344,7 @@ if app_route == "(1) Office Expense Master":
             in_name = st.text_input("Source Name / Party:", value=edit_office_row.get("Name", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_name_{Token}")
             
             in_amount = st.number_input("Collected Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else None, placeholder="Type amount directly...", key=f"off_in_amt_{Token}")
-            in_phone = st.text_input("WhatsApp Number (10 Digits):", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_ph_{Token}")
+            in_phone = st.text_input("WhatsApp Number (10 Digits):", value=str(edit_office_row.get("Phone", "")) if (is_editing_office villages and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_ph_{Token}")
             in_remark = st.text_area("Entry Remarks / Context:", value=edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_rem_{Token}")
             
             sub_label = "Update Cash Inward" if is_editing_office else "Save Cash Inward"
@@ -632,7 +629,6 @@ else:
             st.session_state.sel_op = edit_work_row.get("Operator", "")
             st.session_state.sel_wt = edit_work_row.get("Work Type", "PC")
         
-        # 1. Operator Select Panel
         st.markdown("<p style='margin-bottom:2px; color:#ff9900;'>Select Working Operator:</p>", unsafe_allow_html=True)
         if operator_options:
             op_grid_cols = st.columns(max(len(operator_options), 1))
@@ -647,7 +643,6 @@ else:
         else:
             st.error("Upar master register me operator add karein pehle!")
             
-        # 2. Category selection
         st.markdown("<p style='margin-top:8px; margin-bottom:2px; color:#61afef;'>Select Active Work Parameters Class:</p>", unsafe_allow_html=True)
         wt_c1, wt_c2, wt_c3 = st.columns(3)
         
@@ -671,7 +666,6 @@ else:
 
         st.info(f"⚡ Current Configuration -> Operator: **{st.session_state.sel_op}** | Batch Profile Mode: **{st.session_state.sel_wt}**")
         
-        # Production entry form
         with st.form("production_main_data_capture_form"):
             prod_date = st.date_input("Processing Entry Date:", value=datetime.strptime(edit_work_row["Date"], "%Y-%m-%d").date() if is_editing_work else datetime.today().date(), key=f"prod_date_{Token}")
             
@@ -708,17 +702,14 @@ else:
                 wt_col1, wt_col2 = st.columns(2)
                 with wt_col1:
                     carat_20_weight = st.number_input("+20 Up Raw Carat Weight Value:", min_value=0.0, value=float(edit_work_row.get("Carat_20_Up")) if is_editing_work else None, step=0.01, format="%.2f", placeholder="Type weight...", key=f"prod_carat20_{Token}")
-                    
                     default_op_rate_20_up = float(edit_work_row.get("Op_Rate_20_Up", st.session_state.locked_op_rate_20_up)) if is_editing_work else st.session_state.locked_op_rate_20_up
                     op_rate_20_up = st.number_input("+20 Up Operator Pay Rate:", min_value=0.0, value=default_op_rate_20_up, step=0.1, key=f"prod_op_rate20_{Token}")
                 with wt_col2:
                     carat_1_weight = st.number_input("+1 Carat Raw Weight Value:", min_value=0.0, value=float(edit_work_row.get("Carat_1_Up")) if is_editing_work else None, step=0.01, format="%.2f", placeholder="Type weight...", key=f"prod_carat1_{Token}")
-                    
                     default_op_rate_1_up = float(edit_work_row.get("Op_Rate_1_Up", st.session_state.locked_op_rate_1_up)) if is_editing_work else st.session_state.locked_op_rate_1_up
                     op_rate_1_up = st.number_input("+1 Carat Operator Pay Rate:", min_value=0.0, value=default_op_rate_1_up, step=0.1, key=f"prod_op_rate1_{Token}")
                     
                 st.markdown("<p style='color:#7cfc00; font-weight:bold; margin-bottom: 2px;'>Collective Consolidated Party Evaluation:</p>", unsafe_allow_html=True)
-                
                 default_party_rate_carat = float(edit_work_row.get("Party Rate", st.session_state.locked_party_rate_carat)) if is_editing_work else st.session_state.locked_party_rate_carat
                 unified_party_rate = st.number_input("Consolidated Party Carat Standard Rate:", min_value=0.0, value=default_party_rate_carat, step=0.1, key=f"prod_pt_rate_carat_{Token}")
                 
@@ -757,6 +748,7 @@ else:
                         calculated_op_amount = float(safe_choki_count * (generic_op_rate if generic_op_rate else 0.0))
                         calculated_party_amount = float(safe_choki_count * (unified_party_rate if unified_party_rate else 0.0))
                         final_op_rate_logged = generic_op_rate if generic_op_rate else 0.0
+                        safe_pcs_count = safe_choki_count
                         
                     new_production_row = {
                         "Date": str(prod_date), "Operator": st.session_state.sel_op, "Party": prod_party,
@@ -774,7 +766,7 @@ else:
                         st.session_state.msg_work = "✔ Production Log Entry Updated!"
                     else:
                         df_work = pd.concat([df_work, pd.DataFrame([new_production_row])], ignore_index=True)
-                        st.session_state.msg_work = "✔ Daily Production Entry Tracked Matrix Confirmed!"
+                        st.session_state.msg_work = "✔ Daily Production Entry Tracked!"
                     save_data(df_work, DAILY_WORK_FILE)
                     trigger_form_reset()
                     st.rerun()
@@ -858,6 +850,9 @@ else:
         ["Operator Complete Accounting View", "Client Party Outstanding Receivables Balances", "Raw Industrial Processing Logs Summary"]
     )
     
+    # =========================================================
+    # UPGRADE 1 & 3: OPERATOR ACCOUNTING VIEW WITH SUMMARY & AUTO SUM
+    # =========================================================
     if selected_view_ledger == "Operator Complete Accounting View" and (not df_work.empty or not df_upad.empty):
         unique_active_ops = sorted(list(set(df_work["Operator"].unique()).union(set(df_upad["Operator"].unique()))))
         if unique_active_ops:
@@ -927,12 +922,23 @@ else:
             net_payable_salary = gross_op_credits - gross_op_debits
             
             st.markdown("---")
+            st.markdown(f"### 📈 Accounting Bottom Summary for {filter_operator_target}")
             stat_c1, stat_c2, stat_c3 = st.columns(3)
             stat_c1.metric("Gross Production Value (Earnings)", f"₹{gross_op_credits:.2f}")
             stat_c2.metric("Total Advance Drawn Matrix (Upad)", f"₹{gross_op_debits:.2f}")
             stat_c3.metric("Net Salary Outstanding Payable Balance", f"₹{net_payable_salary:.2f}")
             
+            # Additional Breakdown Matrix View
             if not op_production_subset.empty:
+                st.markdown("**Production Breakdown Summary By Category:**")
+                summary_table = op_production_subset.groupby("Work Type").agg(
+                    Total_Pcs=("Pcs", "sum"),
+                    Total_Carat_20=("Carat_20_Up", "sum"),
+                    Total_Carat_1=("Carat_1_Up", "sum"),
+                    Total_Earnings=("Operator Amount", "sum")
+                ).reset_index()
+                st.table(summary_table)
+                
                 pdf_op_blob = generate_pdf_document(op_production_subset[["Date", "Party", "Work Type", "Pcs", "Pcs_20_Up", "Pcs_1_Up", "Carat_20_Up", "Carat_1_Up", "Operator Amount"]], f"Production Statement For {filter_operator_target}")
                 st.download_button(f"📥 Download {filter_operator_target} PDF Statement", data=pdf_op_blob, file_name=f"{filter_operator_target}_Invoice.pdf", mime="application/pdf")
 
@@ -978,12 +984,54 @@ else:
             pdf_pt_blob = generate_pdf_document(party_billings_subset[["Date", "Operator", "Work Type", "Pcs", "Pcs_20_Up", "Pcs_1_Up", "Carat_20_Up", "Carat_1_Up", "Party Rate", "Party Amount"]], f"Account Ledger Statement For {filter_party_target}")
             st.download_button(f"📥 Download {filter_party_target} Statement PDF Invoice", data=pdf_pt_blob, file_name=f"Party_{filter_party_target}_Ledger.pdf", mime="application/pdf")
 
+    # =========================================================
+    # UPGRADE 2 & 3: RAW PROCESSING SUMMARY WITH GLOBAL FILTER & SUM
+    # =========================================================
     else:
         st.markdown("#### Complete Global Audit Raw Matrix Logs")
+        
+        # 1. Real-time Search Box Input
+        search_query = st.text_input("🔍 Live Smart Search Filter (Mahesh, Party Name, Work Type ya Date likhein):", placeholder="Type anything to filter instantly...")
+        
         if not df_work.empty:
             df_work_show = df_work.sort_values(by="Date", ascending=False).reset_index(drop=True)
-            display_work_df = df_work_show.copy()
+            
+            # 2. Applying the Smart Global Filter condition if search query is typed
+            if search_query.strip():
+                q = search_query.strip().lower()
+                # Check cross matching columns data strings
+                mask = (
+                    df_work_show["Operator"].astype(str).str.lower().str.contains(q) |
+                    df_work_show["Party"].astype(str).str.lower().str.contains(q) |
+                    df_work_show["Work Type"].astype(str).str.lower().str.contains(q) |
+                    df_work_show["Date"].astype(str).str.lower().str.contains(q)
+                )
+                df_work_filtered = df_work_show[mask].reset_index(drop=True)
+            else:
+                df_work_filtered = df_work_show.copy()
+            
+            # 3. Dynamic Sum Engine Panel initialization
+            total_filtered_pcs = df_work_filtered["Pcs"].sum()
+            total_filtered_carat20 = df_work_filtered["Carat_20_Up"].sum()
+            total_filtered_carat1 = df_work_filtered["Carat_1_Up"].sum()
+            total_filtered_op_amt = df_work_filtered["Operator Amount"].sum()
+            total_filtered_pt_amt = df_work_filtered["Party Amount"].sum()
+            
+            # 4. Display live dynamic metrics widgets row
+            st.markdown("### 📊 Dynamic Aggregated Sum Panel (Filtered Live)")
+            sum_col1, sum_col2, sum_col3, sum_col4 = st.columns(4)
+            sum_col1.metric("Filtered Total Pieces (Pcs)", f"{int(total_filtered_pcs)} Pcs")
+            sum_col2.metric("Filtered Carat Weight (+20 / +1)", f"{total_filtered_carat20:.2f} ct / {total_filtered_carat1:.2f} ct")
+            sum_col3.metric("Filtered Operator Total Pay", f"₹{total_filtered_op_amt:.2f}")
+            sum_col4.metric("Filtered Party Billing Total", f"₹{total_filtered_pt_amt:.2f}")
+            st.markdown("---")
+            
+            # 5. Display ultimate filtered dataframe row matrix
+            display_work_df = df_work_filtered.copy()
             display_work_df.index = display_work_df.index + 1
-            st.dataframe(display_work_df)
+            st.dataframe(display_work_df, use_container_width=True)
+            
+            if df_work_filtered.empty:
+                st.warning("⚠️ Diye gaye keyword ke match hota hua koi record nahi mila!")
         else:
             st.info("No diamond processing transactions stored inside daily registry.")
