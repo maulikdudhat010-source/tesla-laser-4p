@@ -141,12 +141,23 @@ df_master = load_data(OP_PARTY_MASTER_FILE, ["Type", "Name"])
 df_office = load_data(OFFICE_FILE, ["Date", "Type", "Name", "Amount", "Phone", "Remark"])
 df_home = load_data(HOME_FILE, ["Date", "Type", "Name", "Amount", "Phone", "Remark"])
 
-work_cols = ["Date", "Operator", "Party", "Work Type", "Pcs", "Carat_20_Up", "Carat_1_Up", "Choki", "Operator Rate", "Party Rate", "Operator Amount", "Party Amount"]
+# Kept standardized columns for tracking data structured accurately
+work_cols = [
+    "Date", "Operator", "Party", "Work Type", "Pcs", 
+    "Carat_20_Up", "Carat_1_Up", "Choki", 
+    "Op_Rate_20_Up", "Op_Rate_1_Up",
+    "Operator Rate", "Party Rate", "Operator Amount", "Party Amount"
+]
 df_work = load_data(DAILY_WORK_FILE, work_cols)
 df_upad = load_data(OP_UPAD_FILE, ["Date", "Operator", "Amount", "Payment Mode", "Remark"])
 
 # Formats numerical data cleanly
-for df_t, cols in [(df_office, ["Amount"]), (df_home, ["Amount"]), (df_work, ["Pcs", "Carat_20_Up", "Carat_1_Up", "Choki", "Operator Rate", "Party Rate", "Operator Amount", "Party Amount"])]:
+numerical_cols = [
+    "Pcs", "Carat_20_Up", "Carat_1_Up", "Choki", 
+    "Op_Rate_20_Up", "Op_Rate_1_Up",
+    "Operator Rate", "Party Rate", "Operator Amount", "Party Amount"
+]
+for df_t, cols in [(df_office, ["Amount"]), (df_home, ["Amount"]), (df_work, numerical_cols)]:
     for c in cols:
         if c in df_t.columns:
             df_t[c] = pd.to_numeric(df_t[c], errors='coerce').fillna(0.0)
@@ -434,39 +445,70 @@ else:
             qty_carat_1 = 0.0
             qty_choki = 0
             
+            # Initializing input state variables
+            op_r, pt_r = None, None
+            op_r_20, op_r_1 = 0.0, 0.0
+            
             # Conditionally render inputs based on Selection
             if st.session_state.sel_wt == "PC":
                 qty_pcs = st.number_input("Number of PC:", min_value=0, value=0, step=1)
+                op_r = st.number_input("Operator Rate (per PC):", min_value=0.0, step=0.1, value=None, placeholder="Type Rate...")
+                pt_r = st.number_input("Party Rate (per PC):", min_value=0.0, step=0.1, value=None, placeholder="Type Rate...")
+                
             elif st.session_state.sel_wt == "Carat":
-                st.markdown("<p style='color:#61afef; font-weight:bold; margin-bottom:2px;'>Carat Weights partitions:</p>", unsafe_allow_html=True)
-                c_part1, c_part2 = st.columns(2)
-                with c_part1:
+                st.markdown("<p style='color:#61afef; font-weight:bold; margin-bottom:2px;'>Carat Weights & Rates Configuration:</p>", unsafe_allow_html=True)
+                
+                # Weight entries
+                c_w1, c_w2 = st.columns(2)
+                with c_w1:
                     qty_carat_20 = st.number_input("+20 Up Weight:", min_value=0.0, value=0.0, step=0.01, format="%.2f")
-                with c_part2:
+                with c_w2:
                     qty_carat_1 = st.number_input("+1 Carat Weight:", min_value=0.0, value=0.0, step=0.01, format="%.2f")
+                
+                # Rates: Operator has split rates, Party has a single combined rate
+                st.markdown("<p style='color:#ffffff; font-size:13px; margin-top:5px; margin-bottom:2px;'>💰 Rate Entry (Op details separate | Party collective)</p>", unsafe_allow_html=True)
+                c_r1, c_r2, c_r3 = st.columns(3)
+                with c_r1:
+                    op_r_20 = st.number_input("+20 Up Op Rate:", min_value=0.0, value=0.0, step=0.1, format="%.1f")
+                with c_r2:
+                    op_r_1 = st.number_input("+1 Carat Op Rate:", min_value=0.0, value=0.0, step=0.1, format="%.1f")
+                with c_r3:
+                    pt_r = st.number_input("Party Carat Rate (Total):", min_value=0.0, step=0.1, value=None, placeholder="Type Rate...")
+            
             else:
                 qty_choki = st.number_input("Number of Choki:", min_value=0, value=0, step=1)
+                op_r = st.number_input("Operator Rate (per Choki):", min_value=0.0, step=0.1, value=None, placeholder="Type Rate...")
+                pt_r = st.number_input("Party Rate (per Choki):", min_value=0.0, step=0.1, value=None, placeholder="Type Rate...")
                 
-            op_r = st.number_input("Operator Rate:", min_value=0.0, step=0.1, value=None, placeholder="Type Rate...")
-            pt_r = st.number_input("Party Rate:", min_value=0.0, step=0.1, value=None, placeholder="Type Rate...")
-            
             if st.form_submit_button("Save Work Entry"):
                 if not st.session_state.sel_op or not st.session_state.sel_pt:
                     st.error("Operator aur Party select karein!")
-                elif op_r is None or pt_r is None:
+                elif pt_r is None or (st.session_state.sel_wt != "Carat" and op_r is None):
                     st.error("Rates bharein!")
                 else:
-                    # Multiplier evaluation
-                    if st.session_state.sel_wt == "PC": mult = qty_pcs
-                    elif st.session_state.sel_wt == "Carat": mult = qty_carat_20 + qty_carat_1
-                    else: mult = qty_choki
+                    # Calculate Amounts based on logic requirements
+                    if st.session_state.sel_wt == "PC":
+                        op_amt = qty_pcs * op_r
+                        pt_amt = qty_pcs * pt_r
+                        final_op_r = op_r
+                    elif st.session_state.sel_wt == "Carat":
+                        # Operator: Separate split multiplication
+                        op_amt = (qty_carat_20 * op_r_20) + (qty_carat_1 * op_r_1)
+                        # Party: Merged total calculation (as requested)
+                        pt_amt = (qty_carat_20 + qty_carat_1) * pt_r
+                        final_op_r = 0.0
+                    else:
+                        op_amt = qty_choki * op_r
+                        pt_amt = qty_choki * pt_r
+                        final_op_r = op_r
                     
                     new_row = {
                         "Date": str(w_dt), "Operator": st.session_state.sel_op, "Party": st.session_state.sel_pt,
                         "Work Type": st.session_state.sel_wt, "Pcs": qty_pcs,
                         "Carat_20_Up": qty_carat_20, "Carat_1_Up": qty_carat_1, "Choki": qty_choki,
-                        "Operator Rate": op_r, "Party Rate": pt_r,
-                        "Operator Amount": mult * op_r, "Party Amount": mult * pt_r
+                        "Op_Rate_20_Up": op_r_20, "Op_Rate_1_Up": op_r_1, 
+                        "Operator Rate": final_op_r, "Party Rate": pt_r,
+                        "Operator Amount": op_amt, "Party Amount": pt_amt
                     }
                     df_work = pd.concat([df_work, pd.DataFrame([new_row])], ignore_index=True)
                     save_data(df_work, DAILY_WORK_FILE)
@@ -532,7 +574,7 @@ else:
             df_f_w = df_work[df_work["Operator"] == s_o].copy().reset_index(drop=True)
             if not df_f_w.empty:
                 df_f_w.index = df_f_w.index + 1
-                st.dataframe(df_f_w[["Date", "Party", "Work Type", "Pcs", "Carat_20_Up", "Carat_1_Up", "Choki", "Operator Rate", "Operator Amount"]])
+                st.dataframe(df_f_w[["Date", "Party", "Work Type", "Pcs", "Carat_20_Up", "Carat_1_Up", "Choki", "Op_Rate_20_Up", "Op_Rate_1_Up", "Operator Amount"]])
             
             st.markdown("### Upad History Logs")
             df_f_u = df_upad[df_upad["Operator"] == s_o].copy().reset_index(drop=True)
