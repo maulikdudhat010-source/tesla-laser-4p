@@ -413,16 +413,16 @@ is_editing_office_flag = is_editing_office if 'is_editing_office' in locals() el
 sub_label_exp = "Update Cash Outward" if is_editing_office_flag else "Save Cash Outward"
 # ------------------------
 if st.form_submit_button(sub_label_exp):
-clear_all_messages()
-if not out_name or out_amount is None:
-                    st.error("Nam aur Amount fields blank nahi chod sakte!")
-                else:
-                    new_log = {"Date": str(out_date), "Type": "Expense (Gaya)", "Name": out_name.strip(), "Amount": float(out_amount), "Phone": str(out_phone).strip(), "Remark": out_remark.strip()}
-                    if is_editing_office:
-                        df_office.iloc[st.session_state.edit_id] = new_log
-                        cancel_edit()
-                        st.session_state.msg_off_exp = "✔ Entry Updated Successfully!"
-                    else:
+    clear_all_messages()
+    if not out_name or out_amount is None:
+        st.error("Nam aur Amount fields blank nahi chod sakte!")
+    else:
+        new_log = {"Date": str(out_date), "Type": "Expense (Gaya)", "Name": out_name.strip(), "Amount": float(out_amount), "Remark": out_remark}
+        if is_editing_office:
+            df_office.iloc[st.session_state.edit_id] = new_log
+            cancel_edit()
+            st.session_state.msg_off_exp = "✓ Entry Updated Successfully!"
+        else:
                         df_office = pd.concat([df_office, pd.DataFrame([new_log])], ignore_index=True)
                         st.session_state.msg_off_exp = "✔ Expense Entry Tracked Successfully!"
                     save_data(df_office, OFFICE_FILE)
