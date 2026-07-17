@@ -164,6 +164,16 @@ if 'form_reset_token' not in st.session_state:
 def trigger_form_reset():
     st.session_state.form_reset_token += 1
 
+def force_global_reset():
+    cancel_edit()
+    clear_all_messages()
+    st.session_state.sel_op = ""
+    st.session_state.sel_u_op = ""
+    st.session_state.sel_wt = "PC"
+    st.session_state.sel_pm = "Cash"
+    st.experimental_set_query_params()
+    st.rerun()
+
 # ==========================================
 # 4. STORAGE DATA HANDLING SYSTEM
 # ==========================================
@@ -281,14 +291,8 @@ st.sidebar.markdown("<h2 style='color:#61afef; text-align: center; margin-bottom
 st.sidebar.markdown("<p style='text-align: center; font-size:11px; color:#ff9900;'>Industrial 4P Engine Panel</p>", unsafe_allow_html=True)
 st.sidebar.markdown("---")
 
-if st.sidebar.button("🏠 Back to Main Dashboard / Clear View", key="global_dashboard_reset_trigger", use_container_width=True):
-    cancel_edit()
-    clear_all_messages()
-    st.session_state.sel_op = ""
-    st.session_state.sel_u_op = ""
-    st.toast("🔄 Dashboard Reset Successfully!", icon="🏠")
-    st.experimental_set_query_params() 
-    st.rerun()
+if st.sidebar.button("🏠 Back to Main Dashboard", key="global_dashboard_reset_trigger", use_container_width=True):
+    force_global_reset()
 
 st.sidebar.markdown("---")
 app_route = st.sidebar.radio(
@@ -335,6 +339,14 @@ with st.sidebar.expander("⚙️ Configure Fixed Rates", expanded=False):
         st.toast("✅ Sabhi Rates Lock Kar Diye Gaye Hain!", icon="🔑")
 
 # ==========================================
+# MAIN DASHBOARD QUICK TOP LINK
+# ==========================================
+top_nav_col1, top_nav_col2 = st.columns([8, 2])
+with top_nav_col2:
+    if st.button("🏠 Main Dashboard Screen", key="top_dashboard_universal_home_btn", use_container_width=True):
+        force_global_reset()
+
+# ==========================================
 # 7. SECTION 1: OFFICE EXPENSE ACCOUNTING
 # ==========================================
 if app_route == "(1) Office Expense Master":
@@ -355,7 +367,7 @@ if app_route == "(1) Office Expense Master":
             
             in_amount = st.number_input("Collected Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else None, placeholder="Type amount directly...", key=f"off_in_amt_{Token}")
             in_phone = st.text_input("WhatsApp Number (10 Digits):", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_ph_{Token}")
-            in_remark = st.text_area("Entry Remarks / Context:", value=edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_rem_{Token}")
+            in_remark = st.text_area("Entry Remarks / Context:", value=edit_office_row.get("Remark", "") if (is_editing_office/ edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_rem_{Token}")
             
             sub_label = "Update Cash Inward" if is_editing_office else "Save Cash Inward"
             if st.form_submit_button(sub_label):
