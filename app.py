@@ -218,7 +218,7 @@ def build_whatsapp_url(phone_num, body_text):
 
 def generate_pdf_document(dataframe_source, document_heading):
     byte_stream = io.BytesIO()
-    pdf_canvas = SimpleDocTemplate(byte_stream, pagesize=letter, rightMargin=25, leftMargin=25, topMargin=30, bottomMargin=30)
+    pdf_canvas = SimpleDocTemplate(byte_stream, pagesize=letter, rightMargin=25, leftMargin=25, topMargin=30, margin_bottom=30)
     story_flow = []
     
     style_sheet = getSampleStyleSheet()
@@ -281,6 +281,16 @@ st.sidebar.markdown("<h2 style='color:#61afef; text-align: center; margin-bottom
 st.sidebar.markdown("<p style='text-align: center; font-size:11px; color:#ff9900;'>Industrial 4P Engine Panel</p>", unsafe_allow_html=True)
 st.sidebar.markdown("---")
 
+# NEW NAVIGATION RESET VECTOR (BACK TO MAIN VIEW BUTTON)
+if st.sidebar.button("🏠 Back to Main Dashboard / Clear View", use_container_width=True):
+    cancel_edit()
+    clear_all_messages()
+    st.session_state.sel_op = ""
+    st.session_state.sel_u_op = ""
+    st.toast("🔄 Dashboard Reset Successfully!", icon="🏠")
+    st.rerun()
+
+st.sidebar.markdown("---")
 app_route = st.sidebar.radio(
     "Navigation System Menu:",
     ["(1) Office Expense Master", "(2) Home Expense Master", "(3) Operator Ledger & Production Desk"],
@@ -344,7 +354,10 @@ if app_route == "(1) Office Expense Master":
             in_name = st.text_input("Source Name / Party:", value=edit_office_row.get("Name", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_name_{Token}")
             
             in_amount = st.number_input("Collected Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else None, placeholder="Type amount directly...", key=f"off_in_amt_{Token}")
-            in_phone = st.text_input("WhatsApp Number (10 Digits):", value=str(edit_office_row.get("Phone", "")) if (is_editing_office villages and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_ph_{Token}")
+            
+            # --- TYPO CRASH FIX AT THIS NODE ---
+            in_phone = st.text_input("WhatsApp Number (10 Digits):", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_ph_{Token}")
+            
             in_remark = st.text_area("Entry Remarks / Context:", value=edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_rem_{Token}")
             
             sub_label = "Update Cash Inward" if is_editing_office else "Save Cash Inward"
@@ -850,9 +863,9 @@ else:
         ["Operator Complete Accounting View", "Client Party Outstanding Receivables Balances", "Raw Industrial Processing Logs Summary"]
     )
     
-    # =========================================================
-    # UPGRADE 1 & 3: OPERATOR ACCOUNTING VIEW WITH SUMMARY & AUTO SUM
-    # =========================================================
+    # ==========================================
+    # OPERATOR COMPLETE ACCOUNTING VIEW
+    # ==========================================
     if selected_view_ledger == "Operator Complete Accounting View" and (not df_work.empty or not df_upad.empty):
         unique_active_ops = sorted(list(set(df_work["Operator"].unique()).union(set(df_upad["Operator"].unique()))))
         if unique_active_ops:
@@ -928,7 +941,6 @@ else:
             stat_c2.metric("Total Advance Drawn Matrix (Upad)", f"₹{gross_op_debits:.2f}")
             stat_c3.metric("Net Salary Outstanding Payable Balance", f"₹{net_payable_salary:.2f}")
             
-            # Additional Breakdown Matrix View
             if not op_production_subset.empty:
                 st.markdown("**Production Breakdown Summary By Category:**")
                 summary_table = op_production_subset.groupby("Work Type").agg(
@@ -945,7 +957,7 @@ else:
     elif selected_view_ledger == "Client Party Outstanding Receivables Balances" and not df_work.empty:
         distinct_parties_logged = sorted(df_work["Party"].unique())
         if distinct_parties_logged:
-            filter_party_target = st.selectbox("Select Target Client Billing Account Account:", distinct_parties_logged)
+            filter_party_target = st.selectbox("Select Target Client Billing Account:", distinct_parties_logged)
             party_billings_subset = df_work[df_work["Party"] == filter_party_target].copy().reset_index(drop=True)
             
             for party_idx, p_row in party_billings_subset.iterrows():
@@ -984,22 +996,19 @@ else:
             pdf_pt_blob = generate_pdf_document(party_billings_subset[["Date", "Operator", "Work Type", "Pcs", "Pcs_20_Up", "Pcs_1_Up", "Carat_20_Up", "Carat_1_Up", "Party Rate", "Party Amount"]], f"Account Ledger Statement For {filter_party_target}")
             st.download_button(f"📥 Download {filter_party_target} Statement PDF Invoice", data=pdf_pt_blob, file_name=f"Party_{filter_party_target}_Ledger.pdf", mime="application/pdf")
 
-    # =========================================================
-    # UPGRADE 2 & 3: RAW PROCESSING SUMMARY WITH GLOBAL FILTER & SUM
-    # =========================================================
+    # ==========================================
+    # RAW INDUSTRIAL PROCESSING LOGS SUMMARY (SMART FILTER + AUTO SUM)
+    # ==========================================
     else:
         st.markdown("#### Complete Global Audit Raw Matrix Logs")
         
-        # 1. Real-time Search Box Input
         search_query = st.text_input("🔍 Live Smart Search Filter (Mahesh, Party Name, Work Type ya Date likhein):", placeholder="Type anything to filter instantly...")
         
         if not df_work.empty:
             df_work_show = df_work.sort_values(by="Date", ascending=False).reset_index(drop=True)
             
-            # 2. Applying the Smart Global Filter condition if search query is typed
             if search_query.strip():
                 q = search_query.strip().lower()
-                # Check cross matching columns data strings
                 mask = (
                     df_work_show["Operator"].astype(str).str.lower().str.contains(q) |
                     df_work_show["Party"].astype(str).str.lower().str.contains(q) |
@@ -1010,14 +1019,12 @@ else:
             else:
                 df_work_filtered = df_work_show.copy()
             
-            # 3. Dynamic Sum Engine Panel initialization
             total_filtered_pcs = df_work_filtered["Pcs"].sum()
             total_filtered_carat20 = df_work_filtered["Carat_20_Up"].sum()
             total_filtered_carat1 = df_work_filtered["Carat_1_Up"].sum()
             total_filtered_op_amt = df_work_filtered["Operator Amount"].sum()
             total_filtered_pt_amt = df_work_filtered["Party Amount"].sum()
             
-            # 4. Display live dynamic metrics widgets row
             st.markdown("### 📊 Dynamic Aggregated Sum Panel (Filtered Live)")
             sum_col1, sum_col2, sum_col3, sum_col4 = st.columns(4)
             sum_col1.metric("Filtered Total Pieces (Pcs)", f"{int(total_filtered_pcs)} Pcs")
@@ -1026,7 +1033,6 @@ else:
             sum_col4.metric("Filtered Party Billing Total", f"₹{total_filtered_pt_amt:.2f}")
             st.markdown("---")
             
-            # 5. Display ultimate filtered dataframe row matrix
             display_work_df = df_work_filtered.copy()
             display_work_df.index = display_work_df.index + 1
             st.dataframe(display_work_df, use_container_width=True)
