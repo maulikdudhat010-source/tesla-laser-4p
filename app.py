@@ -165,17 +165,19 @@ def trigger_form_reset():
     st.session_state.form_reset_token += 1
 
 def force_global_reset():
+    st.session_state.sel_op = ""
+    st.session_state.sel_u_op = ""
+    st.session_state.sel_wt = "PC"
+    st.session_state.sel_pm = "Cash"
+    
+    if "menu" in st.session_state:
+        st.session_state["menu"] = "Dashboard"
+        
+    # 3. URL के फालतू पैरामीटर्स साफ करें
     st.query_params.clear()
     
-    st.components.v1.html(
-        """
-        <script>
-            window.top.location.href = window.top.location.pathname;
-        </script>
-        """,
-        height=0
-    )
-    st.stop()
+    # 4. ऐप को रीस्टार्ट करें
+    st.rerun()
 
 # ==========================================
 # 4. STORAGE DATA HANDLING SYSTEM
