@@ -171,11 +171,7 @@ def force_global_reset():
     st.session_state.sel_u_op = ""
     st.session_state.sel_wt = "PC"
     st.session_state.sel_pm = "Cash"
-    
-    # URL पैरामीटर्स साफ़ करने के लिए
     st.query_params.clear()
-    
-    # ऐप को नए सिरे से रीस्टार्ट करने के लिए
     st.rerun() 
 
 # ==========================================
