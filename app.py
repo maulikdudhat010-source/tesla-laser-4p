@@ -164,14 +164,14 @@ if 'form_reset_token' not in st.session_state:
 def trigger_form_reset():
     st.session_state.form_reset_token += 1
 
+
 def force_global_reset():
-    cancel_edit()
-    clear_all_messages()
     st.session_state.sel_op = ""
     st.session_state.sel_u_op = ""
     st.session_state.sel_wt = "PC"
     st.session_state.sel_pm = "Cash"
-    st.experimental_set_query_params()
+    st.query_params.clear()
+    st.session_state.clear()
     st.rerun()
 
 # ==========================================
