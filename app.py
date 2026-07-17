@@ -165,10 +165,14 @@ def trigger_form_reset():
     st.session_state.form_reset_token += 1
 
 def force_global_reset():
-    st.session_state.sel_op = ""
-    st.session_state.sel_u_op = ""
-    st.session_state.sel_wt = "PC"
-    st.session_state.sel_pm = "Cash"
+    st.query_params.clear()
+    
+    for key in list(st.session_state.keys()):
+        if key not in ["logged_in", "user_role", "username"]: 
+            del st.session_state[key]
+            
+    # 3. ऐप को पूरी तरह रीस्टार्ट करें
+    st.rerun()
     
     if "menu" in st.session_state:
         st.session_state["menu"] = "Dashboard"
