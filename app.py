@@ -171,16 +171,13 @@ def force_global_reset():
         if key not in ["logged_in", "user_role", "username"]: 
             del st.session_state[key]
             
-    # 3. ऐप को पूरी तरह रीस्टार्ट करें
     st.rerun()
     
     if "menu" in st.session_state:
         st.session_state["menu"] = "Dashboard"
         
-    # 3. URL के फालतू पैरामीटर्स साफ करें
     st.query_params.clear()
     
-    # 4. ऐप को रीस्टार्ट करें
     st.rerun()
 
 # ==========================================
