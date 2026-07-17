@@ -10,10 +10,10 @@ from reportlab.lib import colors
 import io
 import streamlit.components.v1 as components
 
-# ---- PAGE CONFIG & PROFESSIONAL DARK THEME ----
+# ---- PAGE CONFIG & HIGH-CONTRAST PROFESSIONAL DARK THEME ----
 st.set_page_config(page_title="Tesla Laser 4P Management", page_icon="💎", layout="wide")
 
-# Custom Professional Dark Theme (Deep Charcoal & Diamond Blue)
+# Custom Professional High-Contrast Theme (Deep Charcoal, Pure White text, Diamond Blue accents)
 st.markdown("""
     <style>
     /* Hide Streamlit elements */
@@ -23,30 +23,52 @@ st.markdown("""
     .stAppDeployButton {display: none !important;}
     [data-testid="stHeader"] {display: none !important;}
     
-    /* Background colors */
+    /* Global Text and Background Contrast */
     .stApp {
-        background-color: #1a1e24 !important;
-        color: #abb2bf !important;
+        background-color: #16191f !important;
+        color: #ffffff !important;
     }
     
-    /* Sidebar styling */
+    /* Sidebar Text & styling */
     section[data-testid="stSidebar"] {
-        background-color: #111418 !important;
+        background-color: #0f1216 !important;
         border-right: 1px solid #2d3139 !important;
+    }
+    section[data-testid="stSidebar"] .stRadio label {
+        color: #ffffff !important;
+        font-weight: 500 !important;
     }
     
     /* Box/Container styling */
     div[data-testid="stForm"], .stAlert, div[data-testid="element-container"] div.stMarkdown {
-        background-color: #22262e !important;
-        border: 1px solid #2d3139 !important;
+        background-color: #21252b !important;
+        border: 1px solid #3e4451 !important;
         border-radius: 6px !important;
     }
     
-    /* Inputs */
-    input, select, textarea, div[data-baseweb="input"], div[data-baseweb="select"] {
+    /* All Labels Bright & Visible */
+    label, p, span, .stMetric div {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        opacity: 1 !important;
+    }
+    
+    /* Subheadings Contrast */
+    h1, h2, h3, h4, h5, h6 {
+        color: #61afef !important;
+        font-weight: 700 !important;
+    }
+    
+    /* Inputs Text Visibility */
+    input, select, textarea, div[data-baseweb="input"] input, div[data-baseweb="select"] {
         background-color: #16191f !important;
         color: #ffffff !important;
-        border-color: #2d3139 !important;
+        border: 1px solid #3e4451 !important;
+    }
+    
+    /* Dataframe Table Text Color */
+    .stDataFrame div, table, tr, td, th {
+        color: #ffffff !important;
     }
     
     /* Primary buttons (Save/Execute) */
@@ -66,14 +88,14 @@ st.markdown("""
     
     /* Form Inline Message Design */
     .inline-success {
-        background-color: #1e2820 !important;
+        background-color: #1b2e1e !important;
         color: #7cfc00 !important;
-        padding: 8px !important;
+        padding: 10px !important;
         border-radius: 4px !important;
-        border-left: 4px solid #98c379 !important;
+        border: 1px solid #98c379 !important;
         margin-top: 10px !important;
-        font-size: 14px !important;
-        font-weight: 500 !important;
+        font-size: 15px !important;
+        font-weight: bold !important;
         text-align: center !important;
     }
     </style>
@@ -174,7 +196,7 @@ def render_contact_picker(key_suffix):
         <button id="pick_{key_suffix}" style="background-color: #2b313d; color: #61afef; border: 1px solid #3e4451; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; width: 100%;">
             📇 Select Contact from Mobile List
         </button>
-        <p id="st_{key_suffix}" style="font-size: 11px; color: #abb2bf; margin-top: 3px; margin-bottom:0; text-align:center;"></p>
+        <p id="st_{key_suffix}" style="font-size: 11px; color: #ffffff; margin-top: 3px; margin-bottom:0; text-align:center; font-weight: bold;"></p>
     </div>
     <script>
         document.getElementById('pick_{key_suffix}').addEventListener('click', async () => {{
@@ -186,7 +208,7 @@ def render_contact_picker(key_suffix):
                 const contacts = await navigator.contacts.select(['tel'], {{ multiple: false }});
                 if (contacts.length > 0 && contacts[0].tel.length > 0) {{
                     st.innerText = "Copy & Paste this: " + contacts[0].tel[0].replace(/[^\\d]/g, '');
-                    st.style.color = "#98c379";
+                    st.style.color = "#7cfc00";
                 }}
             }} catch (err) {{ }}
         }});
