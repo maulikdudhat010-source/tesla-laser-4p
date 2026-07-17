@@ -69,13 +69,6 @@ st.markdown("""
         border-color: #61afef !important;
     }
     
-    /* ACTIVE STATE HIGHLIGHTS (Dynamic Colors based on state selection) */
-    .active-btn-pc {
-        background-color: #d19a66 !important;
-        color: #000000 !important;
-        font-weight: bold !important;
-    }
-    
     /* Main Action Form Buttons */
     button[kind="primary"], div.stButton > button:first-child {
         background-color: #4a75a0 !important;
@@ -92,12 +85,6 @@ st.markdown("""
         color: #000000 !important;
         border-color: #ffaa00 !important;
         cursor: pointer;
-    }
-    
-    /* Row Interactive Operations Styling */
-    .action-btn {
-        padding: 2px 5px !important;
-        font-size: 12px !important;
     }
     
     /* Clear Visible Notification Blocks */
@@ -301,12 +288,13 @@ if app_route == "(1) Office Expense Master":
         native_contact_picker_js("off_in")
         with st.form("office_income_capture_form"):
             in_date = st.date_input("Date:", key="oi_f_date")
-            in_name = st.text_input("Source Name / Party:", value="" if st.session_state.edit_section != "Office" else edit_row["Name"], on_change=clear_all_messages)
+            in_name = st.text_input("Source Name / Party:", value="" if st.session_state.edit_section != "Office" else edit_row["Name"])
             in_amount = st.number_input("Collected Amount (₹):", min_value=0.0, step=50.0, value=None)
             in_phone = st.text_input("WhatsApp Number (10 Digits):")
             in_remark = st.text_area("Entry Remarks / Context:")
             
             if st.form_submit_button("Save Cash Inward"):
+                clear_all_messages()
                 if not in_name or in_amount is None:
                     st.error("Nam aur Amount bharna mandatory hai!")
                 else:
@@ -324,12 +312,13 @@ if app_route == "(1) Office Expense Master":
         native_contact_picker_js("off_exp")
         with st.form("office_expense_capture_form"):
             out_date = st.date_input("Date:", key="oe_f_date")
-            out_name = st.text_input("Recipient / Vendor Name:", on_change=clear_all_messages)
+            out_name = st.text_input("Recipient / Vendor Name:")
             out_amount = st.number_input("Paid Amount (₹):", min_value=0.0, step=50.0, value=None)
             out_phone = st.text_input("WhatsApp Number:")
             out_remark = st.text_area("Purpose / Remark:")
             
             if st.form_submit_button("Save Cash Outward"):
+                clear_all_messages()
                 if not out_name or out_amount is None:
                     st.error("Nam aur Amount fields blank nahi chod sakte!")
                 else:
@@ -369,6 +358,7 @@ if app_route == "(1) Office Expense Master":
                     r_col5.markdown("<span style='color:grey; font-size:12px;'>No Phone</span>", unsafe_allow_html=True)
                 
                 if r_col6.button("❌ Delete", key=f"del_off_row_{idx}"):
+                    clear_all_messages()
                     df_office = df_office.drop(idx).reset_index(drop=True)
                     save_data(df_office, OFFICE_FILE)
                     st.rerun()
@@ -391,12 +381,13 @@ elif app_route == "(2) Home Expense Master":
         st.subheader("💰 Inward Streams (Ghar me Paisa Aaya)")
         with st.form("home_income_form"):
             h_in_date = st.date_input("Date:", key="hi_f_date")
-            h_in_name = st.text_input("Source Name:", on_change=clear_all_messages)
+            h_in_name = st.text_input("Source Name:")
             h_in_amount = st.number_input("Amount (₹):", min_value=0.0, step=100.0, value=None)
             h_in_phone = st.text_input("Phone Reference:")
             h_in_remark = st.text_area("Notes:")
             
             if st.form_submit_button("Commit Home Inward Record"):
+                clear_all_messages()
                 if not h_in_name or h_in_amount is None:
                     st.error("Mandatory entries complete karein!")
                 else:
@@ -413,12 +404,13 @@ elif app_route == "(2) Home Expense Master":
         st.subheader("💸 Household Expenses (Kharcha)")
         with st.form("home_expense_form"):
             h_out_date = st.date_input("Date:", key="he_f_date")
-            h_out_name = st.text_input("Expense Title / Context:", on_change=clear_all_messages)
+            h_out_name = st.text_input("Expense Title / Context:")
             h_out_amount = st.number_input("Spent Amount (₹):", min_value=0.0, step=50.0, value=None)
             h_out_phone = st.text_input("Phone:")
             h_out_remark = st.text_area("Detail Description:")
             
             if st.form_submit_button("Commit Home Outward Record"):
+                clear_all_messages()
                 if not h_out_name or h_out_amount is None:
                     st.error("Data inputs verified empty!")
                 else:
@@ -447,6 +439,7 @@ elif app_route == "(2) Home Expense Master":
                 hr_c4.markdown(f"<span style='color:#8a93a5;'>{row['Remark']}</span>", unsafe_allow_html=True)
                 
                 if hr_c5.button("❌ Delete", key=f"del_hm_row_{idx}"):
+                    clear_all_messages()
                     df_home = df_home.drop(idx).reset_index(drop=True)
                     save_data(df_home, HOME_FILE)
                     st.rerun()
@@ -474,6 +467,7 @@ else:
             execution_method = st.selectbox("Action Vector:", ["Register/Add", "Unregister/Remove"])
             
             if st.form_submit_button("Commit Master Action"):
+                clear_all_messages()
                 cleaned_name = input_op_name.strip()
                 if cleaned_name:
                     if execution_method == "Register/Add":
@@ -493,6 +487,7 @@ else:
             execution_method_pt = st.selectbox("Action Vector:", ["Register/Add", "Unregister/Remove"])
             
             if st.form_submit_button("Commit Client Action"):
+                clear_all_messages()
                 cleaned_pt_name = input_pt_name.strip()
                 if cleaned_pt_name:
                     if execution_method_pt == "Register/Add":
@@ -521,7 +516,6 @@ else:
                 is_selected = st.session_state.sel_op == op_title
                 button_label = f"⭐ {op_title}" if is_selected else str(op_title)
                 
-                # Active Dynamic Visual Border injection logic via click triggers
                 if op_grid_cols[index_op].button(button_label, key=f"grid_op_select_{op_title}"):
                     st.session_state.sel_op = op_title
                     clear_all_messages()
@@ -558,7 +552,6 @@ else:
             prod_date = st.date_input("Processing Entry Date:", key="prod_f_date")
             prod_party = st.selectbox("Select Target Client Party Account:", party_options)
             
-            # Setup localized fields defaults
             pcs_count = 0
             carat_20_weight = 0.0
             carat_1_weight = 0.0
@@ -566,14 +559,12 @@ else:
             
             op_rate_20_up, op_rate_1_up, generic_op_rate, unified_party_rate = 0.0, 0.0, None, None
             
-            # Conditional Rendering Logic for fields
             if st.session_state.sel_wt == "PC":
                 pcs_count = st.number_input("Total Processed PC Count:", min_value=0, value=0, step=1)
                 generic_op_rate = st.number_input("Operator Component Rate (per PC):", min_value=0.0, value=None, placeholder="Rate dalein...")
                 unified_party_rate = st.number_input("Party Billing Rate (per PC):", min_value=0.0, value=None, placeholder="Rate dalein...")
                 
             elif st.session_state.sel_wt == "Carat":
-                # Carat includes inner Pcs Count matrix requested by user
                 st.markdown("<p style='color:#ff9900; font-weight:bold; margin-bottom: 2px;'>Carat Metrics & Integrated Pcs Box:</p>", unsafe_allow_html=True)
                 pcs_count = st.number_input("Total Number of Pcs Inside Carat Batch:", min_value=0, value=0, step=1)
                 
@@ -594,19 +585,18 @@ else:
                 unified_party_rate = st.number_input("Party Collection Scale (per Choki):", min_value=0.0, value=None, placeholder="Rate...")
                 
             if st.form_submit_button("Commit Production Entry to Records"):
+                clear_all_messages()
                 if not st.session_state.sel_op or not prod_party:
                     st.error("Operator aur Party selection absolute mandatory hai!")
                 elif unified_party_rate is None or (st.session_state.sel_wt != "Carat" and generic_op_rate is None):
                     st.error("Financial rates components missing!")
                 else:
-                    # Execute mathematical evaluation matching parameters precisely
                     if st.session_state.sel_wt == "PC":
                         calculated_op_amount = float(pcs_count * generic_op_rate)
                         calculated_party_amount = float(pcs_count * unified_party_rate)
                         final_op_rate_logged = generic_op_rate
                     elif st.session_state.sel_wt == "Carat":
                         calculated_op_amount = float((carat_20_weight * op_rate_20_up) + (carat_1_weight * op_rate_1_up))
-                        # Unified merged total calculation logic requested by user for party matrix
                         calculated_party_amount = float((carat_20_weight + carat_1_weight) * unified_party_rate)
                         final_op_rate_logged = 0.0
                     else:
@@ -664,6 +654,7 @@ else:
             upad_remark = st.text_area("Reference Note:")
             
             if st.form_submit_button("Log Operator Advance Transaction"):
+                clear_all_messages()
                 if not st.session_state.sel_u_op or upad_amount is None:
                     st.error("Operator Name reference details or Amount are blank!")
                 else:
@@ -704,7 +695,7 @@ else:
                         cx4.markdown(f"<a href='https://wa.me/?text={urllib.parse.quote(wa_txt)}' target='_blank'><button style='background-color:#25D366; border:none; color:white; border-radius:4px;'>💬 WhatsApp</button></a>", unsafe_allow_html=True)
                         
                         if cx5.button("❌ Delete", key=f"del_op_work_row_{target_idx}"):
-                            # Match real index back to parent
+                            clear_all_messages()
                             actual_df_idx = df_work[(df_work["Operator"] == filter_operator_target)].index[target_idx]
                             df_work = df_work.drop(actual_df_idx).reset_index(drop=True)
                             save_data(df_work, DAILY_WORK_FILE)
@@ -722,6 +713,7 @@ else:
                         ux3.markdown(f"Draw Amount: <span style='color:#ff5555; font-weight:bold;'>₹{u_row['Amount']:.2f}</span>", unsafe_allow_html=True)
                         
                         if ux4.button("❌ Delete", key=f"del_op_upad_row_{target_u_idx}"):
+                            clear_all_messages()
                             actual_df_u_idx = df_upad[(df_upad["Operator"] == filter_operator_target)].index[target_u_idx]
                             df_upad = df_upad.drop(actual_df_u_idx).reset_index(drop=True)
                             save_data(df_upad, OP_UPAD_FILE)
@@ -759,6 +751,7 @@ else:
                     px4.markdown(f"<a href='https://wa.me/?text={urllib.parse.quote(wa_party_msg)}' target='_blank'><button style='background-color:#25D366; border:none; color:white; border-radius:4px;'>💬 WhatsApp</button></a>", unsafe_allow_html=True)
                     
                     if px5.button("❌ Delete Log Record", key=f"del_party_work_row_{party_idx}"):
+                        clear_all_messages()
                         actual_df_p_idx = df_work[(df_work["Party"] == filter_party_target)].index[party_idx]
                         df_work = df_work.drop(actual_df_p_idx).reset_index(drop=True)
                         save_data(df_work, DAILY_WORK_FILE)
