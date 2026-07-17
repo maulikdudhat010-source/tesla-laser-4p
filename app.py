@@ -167,8 +167,17 @@ def trigger_form_reset():
 def force_global_reset():
     st.query_params.clear()
     
+    keys_to_keep = [
+        "logged_in", 
+        "user_role", 
+        "username", 
+        "fix_value",      
+        "fixed_rates",     
+        "operator_options" 
+    ]
+    
     for key in list(st.session_state.keys()):
-        if key not in ["logged_in", "user_role", "username"]: 
+        if key not in keys_to_keep: 
             del st.session_state[key]
             
     st.rerun()
