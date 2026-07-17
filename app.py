@@ -277,8 +277,7 @@ st.sidebar.markdown("---")
 app_route = st.sidebar.radio(
     "Navigation System Menu:",
     ["(1) Office Expense Master", "(2) Home Expense Master", "(3) Operator Ledger & Production Desk"],
-    on_change=clear_all_messages,
-    key="main_navigation"
+    on_change=clear_all_messages
 )
 
 if app_route == "(1) Office Expense Master":
@@ -293,17 +292,20 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("<h3 style='color:#ff9900; text-align:center; margin-bottom:10px;'>🔒 Set & Lock Default Rates</h3>", unsafe_allow_html=True)
 
 with st.sidebar.expander("⚙️ Configure Fixed Rates", expanded=True):
+    # Piece Rates
     st.markdown("**1. Piece (PC) Mode Rates**")
     locked_op_pc = st.number_input("Operator Rate (PC):", min_value=0.0, value=st.session_state.locked_op_rate_pc, step=0.5, key="sb_op_pc")
     locked_party_pc = st.number_input("Party Rate (PC):", min_value=0.0, value=st.session_state.locked_party_rate_pc, step=0.5, key="sb_party_pc")
     
     st.markdown("---")
+    # Carat Rates
     st.markdown("**2. Carat Mode Rates**")
     locked_op_20 = st.number_input("+20 Up Operator Rate:", min_value=0.0, value=st.session_state.locked_op_rate_20_up, step=0.5, key="sb_op_20")
     locked_op_1 = st.number_input("+1 Operator Rate:", min_value=0.0, value=st.session_state.locked_op_rate_1_up, step=0.5, key="sb_op_1")
     locked_party_carat = st.number_input("Party Consolidated Rate:", min_value=0.0, value=st.session_state.locked_party_rate_carat, step=0.5, key="sb_party_carat")
     
     st.markdown("---")
+    # Choki Rates
     st.markdown("**3. Choki Mode Rates**")
     locked_op_choki = st.number_input("Operator Rate (Choki):", min_value=0.0, value=st.session_state.locked_op_rate_choki, step=0.5, key="sb_op_choki")
     locked_party_choki = st.number_input("Party Rate (Choki):", min_value=0.0, value=st.session_state.locked_party_rate_choki, step=0.5, key="sb_party_choki")
@@ -332,10 +334,11 @@ if app_route == "(1) Office Expense Master":
     with col_income:
         st.subheader("💰 Cash Inward (Paisa Aaya)")
         native_contact_picker_js("off_in")
-        with st.form("office_income_capture_form", clear_on_submit=True):
+        with st.form("office_income_capture_form"):
             in_date = st.date_input("Date:", value=datetime.strptime(edit_office_row["Date"], "%Y-%m-%d").date() if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else datetime.today().date())
             in_name = st.text_input("Source Name / Party:", value=edit_office_row.get("Name", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "")
             
+            # Value is None if not editing so it stays empty (no 0.00 clear headache)
             in_amount = st.number_input("Collected Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else None, placeholder="Type amount directly...")
             in_phone = st.text_input("WhatsApp Number (10 Digits):", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "")
             in_remark = st.text_area("Entry Remarks / Context:", value=edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "")
@@ -367,7 +370,7 @@ if app_route == "(1) Office Expense Master":
     with col_expense:
         st.subheader("💸 Cash Outward (Paisa Gaya)")
         native_contact_picker_js("off_exp")
-        with st.form("office_expense_capture_form", clear_on_submit=True):
+        with st.form("office_expense_capture_form"):
             out_date = st.date_input("Date:", value=datetime.strptime(edit_office_row["Date"], "%Y-%m-%d").date() if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else datetime.today().date())
             out_name = st.text_input("Recipient / Vendor Name:", value=edit_office_row.get("Name", "") if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "")
             
@@ -436,7 +439,8 @@ if app_route == "(1) Office Expense Master":
         st.download_button("📥 Download Office Statement PDF", data=pdf_blob, file_name=f"Office_Report_{datetime.today().date()}.pdf", mime="application/pdf")
     else:
         st.warning("Abhi tak data storage me koi transactions record nahi kiye gaye hain.")
-        # ==========================================
+
+# ==========================================
 # 8. SECTION 2: HOME EXPENSE ACCOUNTING
 # ==========================================
 elif app_route == "(2) Home Expense Master":
@@ -449,12 +453,14 @@ elif app_route == "(2) Home Expense Master":
     
     with col_hm_inc:
         st.subheader("💰 Inward Streams (Ghar me Paisa Aaya)")
-        with st.form("home_income_form", clear_on_submit=True):
+        with st.form("home_income_form"):
             h_in_date = st.date_input("Date:", value=datetime.strptime(edit_home_row["Date"], "%Y-%m-%d").date() if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else datetime.today().date())
             h_in_name = st.text_input("Source Name:", value=edit_home_row.get("Name", "") if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else "")
             
             h_in_amount = st.number_input("Amount (₹):", min_value=0.0, step=100.0, value=float(edit_home_row.get("Amount")) if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else None, placeholder="Type amount directly...")
             h_in_phone = st.text_input("Phone Reference:", value=str(edit_home_row.get("Phone", "")) if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else "")
+            
+            # FIXED CRITICAL TYPO: Removed 'villages=True' error
             h_in_remark = st.text_area("Notes:", value=edit_home_row.get("Remark", "") if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else "")
             
             sub_label_hi = "Update Home Inward" if is_editing_home else "Commit Home Inward Record"
@@ -483,13 +489,13 @@ elif app_route == "(2) Home Expense Master":
 
     with col_hm_exp:
         st.subheader("💸 Household Expenses (Kharcha)")
-        with st.form("home_expense_form", clear_on_submit=True):
+        with st.form("home_expense_form"):
             h_out_date = st.date_input("Date:", value=datetime.strptime(edit_home_row["Date"], "%Y-%m-%d").date() if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else datetime.today().date())
             h_out_name = st.text_input("Expense Title / Context:", value=edit_home_row.get("Name", "") if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else "")
             
             h_out_amount = st.number_input("Spent Amount (₹):", min_value=0.0, step=50.0, value=float(edit_home_row.get("Amount")) if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else None, placeholder="Type amount directly...")
             h_out_phone = st.text_input("Phone:", value=str(edit_home_row.get("Phone", "")) if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else "")
-            h_out_remark = st.text_area("Detail Description:", value=edit_home_row.get("Remark", "") if (is_editing_home payments and edit_home_row.get("Type") == "Expense (Gaya)") else "")
+            h_out_remark = st.text_area("Detail Description:", value=edit_home_row.get("Remark", "") if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else "")
             
             sub_label_he = "Update Home Expense" if is_editing_home else "Commit Home Outward Record"
             if st.form_submit_button(sub_label_he):
@@ -554,7 +560,7 @@ else:
     m_col1, m_col2 = st.columns(2)
     with m_col1:
         st.markdown("### 🛠 Operator Registration Node")
-        with st.form("master_operator_management_form", clear_on_submit=True):
+        with st.form("master_operator_management_form"):
             input_op_name = st.text_input("Enter New Operator Name:")
             execution_method = st.selectbox("Action Vector:", ["Register/Add", "Unregister/Remove"])
             
@@ -574,11 +580,11 @@ else:
                         
     with m_col2:
         st.markdown("### 🏢 Client Party Registration Node")
-        with st.form("master_party_management_form", clear_on_submit=True):
+        with st.form("master_party_management_form"):
             input_pt_name = st.text_input("Enter New Business Party Name:")
             execution_method_pt = st.selectbox("Action Vector:", ["Register/Add", "Unregister/Remove"])
             
-            if st.form_submit_button("Commit Party Action"):
+            if st.form_submit_button("Commit Client Action"):
                 clear_all_messages()
                 cleaned_pt_name = input_pt_name.strip()
                 if cleaned_pt_name:
@@ -594,207 +600,372 @@ else:
 
     st.markdown("---")
     
-    # ADVANCED WORK EDIT CONTROLLER
     is_editing_work = (st.session_state.edit_section == "Work" and st.session_state.edit_id is not None)
     edit_work_row = st.session_state.edit_data if is_editing_work else {}
     
-    st.subheader("📝 Production Entry Intake Counter" if not is_editing_work else "✏️ Update Production Entry Intake Counter")
+    is_editing_upad = (st.session_state.edit_section == "Upad" and st.session_state.edit_id is not None)
+    edit_upad_row = st.session_state.edit_data if is_editing_upad else {}
     
-    with st.form("daily_work_entry_form", clear_on_submit=False):
-        f_col1, f_col2, f_col3, f_col4 = st.columns(4)
+    input_column, upad_column = st.columns(2)
+    
+    with input_column:
+        st.markdown("### 📝 Daily Diamond Production Log")
         
-        w_date = f_col1.date_input("Date:", value=datetime.strptime(edit_work_row["Date"], "%Y-%m-%d").date() if is_editing_work else datetime.today().date())
+        if is_editing_work:
+            st.session_state.sel_op = edit_work_row.get("Operator", "")
+            st.session_state.sel_wt = edit_work_row.get("Work Type", "PC")
         
-        # Safe selection logic for combo boxes
-        def_op_idx = 0
-        if is_editing_work and edit_work_row.get("Operator") in operator_options:
-            def_op_idx = operator_options.index(edit_work_row.get("Operator"))
-        w_op = f_col2.selectbox("Select Operator:", [""] + operator_options, index=def_op_idx if def_op_idx==0 else def_op_idx+1)
+        # 1. Operator Select Panel
+        st.markdown("<p style='margin-bottom:2px; color:#ff9900;'>Select Working Operator:</p>", unsafe_allow_html=True)
+        if operator_options:
+            op_grid_cols = st.columns(max(len(operator_options), 1))
+            for index_op, op_title in enumerate(operator_options):
+                is_selected = st.session_state.sel_op == op_title
+                button_label = f"⭐ {op_title}" if is_selected else str(op_title)
+                
+                if op_grid_cols[index_op].button(button_label, key=f"grid_op_select_{op_title}"):
+                    st.session_state.sel_op = op_title
+                    clear_all_messages()
+                    st.rerun()
+        else:
+            st.error("Upar master register me operator add karein pehle!")
+            
+        # 2. Category selection
+        st.markdown("<p style='margin-top:8px; margin-bottom:2px; color:#61afef;'>Select Active Work Parameters Class:</p>", unsafe_allow_html=True)
+        wt_c1, wt_c2, wt_c3 = st.columns(3)
         
-        def_pt_idx = 0
-        if is_editing_work and edit_work_row.get("Party") in party_options:
-            def_pt_idx = party_options.index(edit_work_row.get("Party"))
-        w_party = f_col3.selectbox("Select Party:", [""] + party_options, index=def_pt_idx if def_pt_idx==0 else def_pt_idx+1)
-        
-        wt_types = ["PC", "Carat", "Choki"]
-        def_wt_idx = wt_types.index(edit_work_row.get("Work Type", "PC")) if is_editing_work else wt_types.index(st.session_state.sel_wt)
-        w_type = f_col4.selectbox("Calculation Engine Type:", wt_types, index=def_wt_idx, key="form_wt_select")
-        
-        st.markdown("##### Production Quantities & Rates Matrix Input")
-        q_col1, q_col2, q_col3, q_col4 = st.columns(4)
-        
-        if w_type == "PC":
-            inp_pcs = q_col1.number_input("Total Pcs:", min_value=0.0, step=1.0, value=float(edit_work_row.get("Pcs", 0.0)) if is_editing_work else None)
-            inp_op_rate = q_col2.number_input("Operator Rate (PC):", min_value=0.0, step=0.1, value=float(edit_work_row.get("Operator Rate", st.session_state.locked_op_rate_pc)))
-            inp_party_rate = q_col3.number_input("Party Rate (PC):", min_value=0.0, step=0.1, value=float(edit_work_row.get("Party Rate", st.session_state.locked_party_rate_pc)))
-            
-            inp_pcs_20, inp_pcs_1, inp_carat_20, inp_carat_1, inp_choki = 0.0, 0.0, 0.0, 0.0, 0.0
-            inp_op_rate_20, inp_op_rate_1 = 0.0, 0.0
-            
-        elif w_type == "Carat":
-            inp_pcs_20 = q_col1.number_input("+20 Up Pcs:", min_value=0.0, step=1.0, value=float(edit_work_row.get("Pcs_20_Up", 0.0)) if is_editing_work else None)
-            inp_carat_20 = q_col2.number_input("+20 Up Carat weight:", min_value=0.0, step=0.01, value=float(edit_work_row.get("Carat_20_Up", 0.0)) if is_editing_work else None)
-            inp_pcs_1 = q_col3.number_input("+1 Pcs:", min_value=0.0, step=1.0, value=float(edit_work_row.get("Pcs_1_Up", 0.0)) if is_editing_work else None)
-            inp_carat_1 = q_col4.number_input("+1 Carat weight:", min_value=0.0, step=0.01, value=float(edit_work_row.get("Carat_1_Up", 0.0)) if is_editing_work else None)
-            
-            r_c1, r_c2, r_c3 = st.columns(3)
-            inp_op_rate_20 = r_c1.number_input("+20 Up Operator Carat Rate:", min_value=0.0, step=0.1, value=float(edit_work_row.get("Op_Rate_20_Up", st.session_state.locked_op_rate_20_up)))
-            inp_op_rate_1 = r_c2.number_input("+1 Operator Carat Rate:", min_value=0.0, step=0.1, value=float(edit_work_row.get("Op_Rate_1_Up", st.session_state.locked_op_rate_1_up)))
-            inp_party_rate = r_c3.number_input("Consolidated Party Carat Rate:", min_value=0.0, step=0.1, value=float(edit_work_row.get("Party Rate", st.session_state.locked_party_rate_carat)))
-            
-            inp_pcs, inp_choki, inp_op_rate = 0.0, 0.0, 0.0
-            
-        else: # Choki Mode
-            inp_choki = q_col1.number_input("Choki Weight/Pcs Count:", min_value=0.0, step=1.0, value=float(edit_work_row.get("Choki", 0.0)) if is_editing_work else None)
-            inp_op_rate = q_col2.number_input("Operator Choki Rate:", min_value=0.0, step=0.1, value=float(edit_work_row.get("Operator Rate", st.session_state.locked_op_rate_choki)))
-            inp_party_rate = q_col3.number_input("Party Choki Rate:", min_value=0.0, step=0.1, value=float(edit_work_row.get("Party Rate", st.session_state.locked_party_rate_choki)))
-            
-            inp_pcs, inp_pcs_20, inp_pcs_1, inp_carat_20, inp_carat_1 = 0.0, 0.0, 0.0, 0.0, 0.0
-            inp_op_rate_20, inp_op_rate_1 = 0.0, 0.0
-
-        sub_lbl_w = "Update Entry In Storage" if is_editing_work else "Record Entry In Storage"
-        if st.form_submit_button(sub_lbl_w):
+        lbl_pc = "🔴 PIECE (PC) ACTIVE" if st.session_state.sel_wt == "PC" else "Piece (PC)"
+        if wt_c1.button(lbl_pc, key="btn_wt_pc_select"):
+            st.session_state.sel_wt = "PC"
             clear_all_messages()
-            if not w_op or not w_party:
-                st.error("Operator aur Party ka select hona compulsory hai!")
-            else:
-                if w_type == "PC":
-                    op_total_paisa = float(inp_pcs or 0.0) * float(inp_op_rate)
-                    pt_total_paisa = float(inp_pcs or 0.0) * float(inp_party_rate)
-                elif w_type == "Carat":
-                    op_total_paisa = (float(inp_carat_20 or 0.0) * float(inp_op_rate_20)) + (float(inp_carat_1 or 0.0) * float(inp_op_rate_1))
-                    pt_total_paisa = (float(inp_carat_20 or 0.0) + float(inp_carat_1 or 0.0)) * float(inp_party_rate)
-                else: # Choki
-                    op_total_paisa = float(inp_choki or 0.0) * float(inp_op_rate)
-                    pt_total_paisa = float(inp_choki or 0.0) * float(inp_party_rate)
-                
-                new_work_payload = {
-                    "Date": str(w_date), "Operator": w_op, "Party": w_party, "Work Type": w_type,
-                    "Pcs": float(inp_pcs or 0.0), "Pcs_20_Up": float(inp_pcs_20 or 0.0), "Pcs_1_Up": float(inp_pcs_1 or 0.0),
-                    "Carat_20_Up": float(inp_carat_20 or 0.0), "Carat_1_Up": float(inp_carat_1 or 0.0), "Choki": float(inp_choki or 0.0),
-                    "Op_Rate_20_Up": float(inp_op_rate_20), "Op_Rate_1_Up": float(inp_op_rate_1),
-                    "Operator Rate": float(inp_op_rate), "Party Rate": float(inp_party_rate),
-                    "Operator Amount": op_total_paisa, "Party Amount": pt_total_paisa
-                }
-                
-                if is_editing_work:
-                    df_work.iloc[st.session_state.edit_id] = new_work_payload
-                    cancel_edit()
-                    st.session_state.msg_work = "✔ Production Log Entry Updated!"
-                else:
-                    df_work = pd.concat([df_work, pd.DataFrame([new_work_payload])], ignore_index=True)
-                    st.session_state.msg_work = "✔ Production Log Entry Inserted!"
-                
-                save_data(df_work, DAILY_WORK_FILE)
-                st.rerun()
-                
-        if is_editing_work and st.form_submit_button("Cancel Production Edit"):
-            cancel_edit()
             st.rerun()
             
-        if st.session_state.msg_work:
-            st.markdown(f'<div class="inline-success">{st.session_state.msg_work}</div>', unsafe_allow_html=True)
-
-    # OPERATOR UPAD ENTRY MODULE
-    st.markdown("---")
-    st.subheader("💸 Operator Upad / Advance Release Module")
-    with st.form("operator_upad_capture_form", clear_on_submit=True):
-        u_col1, u_col2, u_col3, u_col4 = st.columns(4)
-        u_date = u_col1.date_input("Upad Date:", value=datetime.today().date())
-        u_op = u_col2.selectbox("Select Operator Recipient:", [""] + operator_options)
-        u_amount = u_col3.number_input("Advance Amount Handed (₹):", min_value=0.0, step=100.0, placeholder="Direct type number...")
-        u_mode = u_col4.selectbox("Payment Gateway Mode:", ["Cash", "Bank Transfer", "UPI Account"])
-        u_remark = st.text_area("Internal Tracking Remark:")
-        
-        if st.form_submit_button("Release & File Upad Amount"):
+        lbl_ct = "🟢 CARAT ACTIVE" if st.session_state.sel_wt == "Carat" else "Carat"
+        if wt_c2.button(lbl_ct, key="btn_wt_ct_select"):
+            st.session_state.sel_wt = "Carat"
             clear_all_messages()
-            if not u_op or u_amount is None or u_amount <= 0:
-                st.error("Operator Name aur valid non-zero Amount zaruri hai!")
-            else:
-                upad_payload = {"Date": str(u_date), "Operator": u_op, "Amount": float(u_amount), "Payment Mode": u_mode, "Remark": u_remark.strip()}
-                df_upad = pd.concat([df_upad, pd.DataFrame([upad_payload])], ignore_index=True)
-                save_data(df_upad, OP_UPAD_FILE)
-                st.session_state.msg_upad = f"✔ Upad Advance of ₹{u_amount} filed for {u_op}!"
-                st.rerun()
-                
-        if st.session_state.msg_upad:
-            st.markdown(f'<div class="inline-success">{st.session_state.msg_upad}</div>', unsafe_allow_html=True)
+            st.rerun()
+            
+        lbl_ck = "🔵 CHOKI ACTIVE" if st.session_state.sel_wt == "Choki" else "Choki"
+        if wt_c3.button(lbl_ck, key="btn_wt_ck_select"):
+            st.session_state.sel_wt = "Choki"
+            clear_all_messages()
+            st.rerun()
 
-    # FILTERS & COMPILED LEDGERS DISPLAY ENGINE
-    st.markdown("---")
-    st.subheader("📊 Interactive Analytical Ledger Summary Desk")
-    
-    sel_filter_op = st.selectbox("🎯 Filter Screen View by Individual Operator:", ["ALL OPERATORS"] + operator_options)
-    
-    if sel_filter_op == "ALL OPERATORS":
-        sub_work = df_work
-        sub_upad = df_upad
-    else:
-        sub_work = df_work[df_work["Operator"] == sel_filter_op]
-        sub_upad = df_upad[df_upad["Operator"] == sel_filter_op]
+        st.info(f"⚡ Current Configuration -> Operator: **{st.session_state.sel_op}** | Batch Profile Mode: **{st.session_state.sel_wt}**")
         
-    total_op_earned = sub_work["Operator Amount"].sum()
-    total_party_billed = sub_work["Party Amount"].sum()
-    total_upad_taken = sub_upad["Amount"].sum()
-    net_payable_to_operator = total_op_earned - total_upad_taken
-    
-    m_1, m_2, m_3, m_4 = st.columns(4)
-    m_1.metric("🛠 Operator Base Earnings:", f"₹ {total_op_earned:,.2f}")
-    m_2.metric("🏢 Total Billed to Client Parties:", f"₹ {total_party_billed:,.2f}")
-    m_3.metric("📉 Handed Out Upad/Advance:", f"₹ {total_upad_taken:,.2f}")
-    m_4.metric("⚖ Net Balance Due (Payable):", f"₹ {net_payable_to_operator:,.2f}")
-    
-    st.markdown("### Production Log Matrix View")
-    if not sub_work.empty:
-        for idx, row in sub_work.iterrows():
-            with st.container():
-                wc1, wc2, wc3, wc4, wc5, wc6 = st.columns([1.5, 3.0, 2.5, 2.0, 1.0, 1.0])
-                wc1.markdown(f"📅 `{row['Date']}`")
-                wc2.markdown(f"👤 **{row['Operator']}** ➔ Billed to: **{row['Party']}**")
+        # Production entry form
+        with st.form("production_main_data_capture_form"):
+            prod_date = st.date_input("Processing Entry Date:", value=datetime.strptime(edit_work_row["Date"], "%Y-%m-%d").date() if is_editing_work else datetime.today().date())
+            
+            default_party_idx = 0
+            if is_editing_work and edit_work_row.get("Party") in party_options:
+                default_party_idx = party_options.index(edit_work_row.get("Party"))
+            prod_party = st.selectbox("Select Target Client Party Account:", party_options, index=default_party_idx)
+            
+            pcs_count = 0
+            pcs_20_up = 0
+            pcs_1_up = 0
+            carat_20_weight = 0.0
+            carat_1_weight = 0.0
+            choki_count = 0
+            
+            # Applying locked default values and placeholder configs to prevent typing friction
+            if st.session_state.sel_wt == "PC":
+                # Int value using None default value so user gets blank box to type straightaway
+                pcs_count = st.number_input("Total Processed PC Count:", min_value=0, value=int(edit_work_row.get("Pcs")) if is_editing_work else None, placeholder="Type count...", step=1)
                 
-                if row["Work Type"] == "PC":
-                    metrics_line = f"🔹 Type: `PC` | Count: **{row['Pcs']:.0f} Pcs**"
-                elif row["Work Type"] == "Carat":
-                    metrics_line = f"🔸 Type: `Carat` | +20: **{row['Carat_20_Up']:.2f} ct** (+1: **{row['Carat_1_Up']:.2f} ct**)"
+                # Locked value loaded as default. If editing, we use edit row value.
+                default_op_rate_pc = float(edit_work_row.get("Operator Rate", st.session_state.locked_op_rate_pc)) if is_editing_work else st.session_state.locked_op_rate_pc
+                default_party_rate_pc = float(edit_work_row.get("Party Rate", st.session_state.locked_party_rate_pc)) if is_editing_work else st.session_state.locked_party_rate_pc
+                
+                generic_op_rate = st.number_input("Operator Component Rate (per PC):", min_value=0.0, value=default_op_rate_pc, step=0.1)
+                unified_party_rate = st.number_input("Party Billing Rate (per PC):", min_value=0.0, value=default_party_rate_pc, step=0.1)
+                
+            elif st.session_state.sel_wt == "Carat":
+                st.markdown("<p style='color:#ff9900; font-weight:bold; margin-bottom: 2px;'>Carat Metrics & Separated PC Boxes:</p>", unsafe_allow_html=True)
+                
+                pc_col1, pc_col2 = st.columns(2)
+                with pc_col1:
+                    pcs_20_up = st.number_input("+20 Up Pcs Count:", min_value=0, value=int(edit_work_row.get("Pcs_20_Up")) if is_editing_work else None, placeholder="Type count...", step=1)
+                with pc_col2:
+                    pcs_1_up = st.number_input("+1 Carat Pcs Count:", min_value=0, value=int(edit_work_row.get("Pcs_1_Up")) if is_editing_work else None, placeholder="Type count...", step=1)
+                
+                wt_col1, wt_col2 = st.columns(2)
+                with wt_col1:
+                    carat_20_weight = st.number_input("+20 Up Raw Carat Weight Value:", min_value=0.0, value=float(edit_work_row.get("Carat_20_Up")) if is_editing_work else None, step=0.01, format="%.2f", placeholder="Type weight...")
+                    
+                    default_op_rate_20_up = float(edit_work_row.get("Op_Rate_20_Up", st.session_state.locked_op_rate_20_up)) if is_editing_work else st.session_state.locked_op_rate_20_up
+                    op_rate_20_up = st.number_input("+20 Up Operator Pay Rate:", min_value=0.0, value=default_op_rate_20_up, step=0.1)
+                with wt_col2:
+                    carat_1_weight = st.number_input("+1 Carat Raw Weight Value:", min_value=0.0, value=float(edit_work_row.get("Carat_1_Up")) if is_editing_work else None, step=0.01, format="%.2f", placeholder="Type weight...")
+                    
+                    default_op_rate_1_up = float(edit_work_row.get("Op_Rate_1_Up", st.session_state.locked_op_rate_1_up)) if is_editing_work else st.session_state.locked_op_rate_1_up
+                    op_rate_1_up = st.number_input("+1 Carat Operator Pay Rate:", min_value=0.0, value=default_op_rate_1_up, step=0.1)
+                    
+                st.markdown("<p style='color:#7cfc00; font-weight:bold; margin-bottom: 2px;'>Collective Consolidated Party Evaluation:</p>", unsafe_allow_html=True)
+                
+                default_party_rate_carat = float(edit_work_row.get("Party Rate", st.session_state.locked_party_rate_carat)) if is_editing_work else st.session_state.locked_party_rate_carat
+                unified_party_rate = st.number_input("Consolidated Party Carat Standard Rate:", min_value=0.0, value=default_party_rate_carat, step=0.1)
+                
+            else:
+                choki_count = st.number_input("Total Handled Choki Units:", min_value=0, value=int(edit_work_row.get("Choki")) if is_editing_work else None, placeholder="Type count...", step=1)
+                
+                default_op_rate_choki = float(edit_work_row.get("Operator Rate", st.session_state.locked_op_rate_choki)) if is_editing_work else st.session_state.locked_op_rate_choki
+                default_party_rate_choki = float(edit_work_row.get("Party Rate", st.session_state.locked_party_rate_choki)) if is_editing_work else st.session_state.locked_party_rate_choki
+                
+                generic_op_rate = st.number_input("Operator Pay Scale (per Choki):", min_value=0.0, value=default_op_rate_choki, step=0.1)
+                unified_party_rate = st.number_input("Party Collection Scale (per Choki):", min_value=0.0, value=default_party_rate_choki, step=0.1)
+                
+            btn_label_prod = "Update Production Entry" if is_editing_work else "Commit Production Entry to Records"
+            if st.form_submit_button(btn_label_prod):
+                clear_all_messages()
+                if not st.session_state.sel_op or not prod_party:
+                    st.error("Operator aur Party selection absolute mandatory hai!")
                 else:
-                    metrics_line = f"🔺 Type: `Choki` | Value: **{row['Choki']:.2f}**"
+                    # Sanitize None values to 0 before saving
+                    safe_pcs_count = pcs_count if pcs_count is not None else 0
+                    safe_pcs_20_up = pcs_20_up if pcs_20_up is not None else 0
+                    safe_pcs_1_up = pcs_1_up if pcs_1_up is not None else 0
+                    safe_carat_20_weight = carat_20_weight if carat_20_weight is not None else 0.0
+                    safe_carat_1_weight = carat_1_weight if carat_1_weight is not None else 0.0
+                    safe_choki_count = choki_count if choki_count is not None else 0
                     
-                wc3.markdown(metrics_line)
-                wc4.markdown(f"💰 Op: **₹{row['Operator Amount']:.1f}** | Pt: **₹{row['Party Amount']:.1f}**")
-                
-                if wc5.button("✏️ Edit", key=f"edit_wk_row_{idx}"):
-                    st.session_state.edit_id = idx
-                    st.session_state.edit_section = "Work"
-                    st.session_state.edit_data = row.to_dict()
-                    st.rerun()
-                    
-                if wc6.button("❌ Delete", key=f"del_wk_row_{idx}"):
-                    clear_all_messages()
-                    df_work = df_work.drop(idx).reset_index(drop=True)
+                    if st.session_state.sel_wt == "PC":
+                        calculated_op_amount = float(safe_pcs_count * (generic_op_rate if generic_op_rate else 0.0))
+                        calculated_party_amount = float(safe_pcs_count * (unified_party_rate if unified_party_rate else 0.0))
+                        final_op_rate_logged = generic_op_rate if generic_op_rate else 0.0
+                    elif st.session_state.sel_wt == "Carat":
+                        calculated_op_amount = float((safe_carat_20_weight * op_rate_20_up) + (safe_carat_1_weight * op_rate_1_up))
+                        calculated_party_amount = float((safe_carat_20_weight + safe_carat_1_weight) * (unified_party_rate if unified_party_rate else 0.0))
+                        final_op_rate_logged = 0.0
+                        safe_pcs_count = safe_pcs_20_up + safe_pcs_1_up
+                    else:
+                        calculated_op_amount = float(safe_choki_count * (generic_op_rate if generic_op_rate else 0.0))
+                        calculated_party_amount = float(safe_choki_count * (unified_party_rate if unified_party_rate else 0.0))
+                        final_op_rate_logged = generic_op_rate if generic_op_rate else 0.0
+                        
+                    new_production_row = {
+                        "Date": str(prod_date), "Operator": st.session_state.sel_op, "Party": prod_party,
+                        "Work Type": st.session_state.sel_wt, "Pcs": int(safe_pcs_count),
+                        "Pcs_20_Up": int(safe_pcs_20_up), "Pcs_1_Up": int(safe_pcs_1_up),
+                        "Carat_20_Up": float(safe_carat_20_weight), "Carat_1_Up": float(safe_carat_1_weight), "Choki": int(safe_choki_count),
+                        "Op_Rate_20_Up": float(op_rate_20_up), "Op_Rate_1_Up": float(op_rate_1_up), 
+                        "Operator Rate": float(final_op_rate_logged), "Party Rate": float(unified_party_rate if unified_party_rate else 0.0),
+                        "Operator Amount": float(calculated_op_amount), "Party Amount": float(calculated_party_amount)
+                    }
+                    if is_editing_work:
+                        df_work.iloc[st.session_state.edit_id] = new_production_row
+                        cancel_edit()
+                        st.session_state.msg_work = "✔ Production Log Entry Updated!"
+                    else:
+                        df_work = pd.concat([df_work, pd.DataFrame([new_production_row])], ignore_index=True)
+                        st.session_state.msg_work = "✔ Daily Production Entry Tracked Matrix Confirmed!"
                     save_data(df_work, DAILY_WORK_FILE)
                     st.rerun()
-                st.markdown("<hr style='margin:3px 0; border-color:#2d333f;' />", unsafe_allow_html=True)
-                
-        pdf_blob_w = generate_pdf_document(sub_work, f"Production Ledger - {sel_filter_op}")
-        st.download_button("📥 Export Production History PDF", data=pdf_blob_w, file_name=f"Production_Report_{sel_filter_op}.pdf", mime="application/pdf")
-    else:
-        st.info("Koshish karein! Is targeted operator ya filters ke andar koi raw records filed nahi mile.")
+            
+            if is_editing_work and st.form_submit_button("Cancel Edit Mode"):
+                cancel_edit()
+                st.rerun()
+            
+            if st.session_state.msg_work:
+                st.markdown(f'<div class="inline-success">{st.session_state.msg_work}</div>', unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.markdown("### Upad Advance Transaction Log Sheet View")
-    if not sub_upad.empty:
-        for idx, row in sub_upad.iterrows():
-            with st.container():
-                uc1, uc2, uc3, uc4, uc5 = st.columns([1.5, 2.5, 1.5, 4.5, 1.0])
-                uc1.markdown(f"📅 `{row['Date']}`")
-                uc2.markdown(f"👤 Operator: **{row['Operator']}**")
-                uc3.markdown(f"🔴 ₹ **{row['Amount']:.2f}**")
-                uc4.markdown(f"💳 Mode: `{row['Payment Mode']}` | Notes: <span style='color:#a6b2c6;'>{row['Remark']}</span>", unsafe_allow_html=True)
-                
-                if uc5.button("❌ Delete", key=f"del_upad_row_{idx}"):
+    with upad_column:
+        st.markdown("### 💸 Operator Salary Advances Framework (Upad)")
+        
+        if is_editing_upad:
+            st.session_state.sel_u_op = edit_upad_row.get("Operator", "")
+            st.session_state.sel_pm = edit_upad_row.get("Payment Mode", "Cash")
+        
+        st.markdown("<p style='margin-bottom:2px; color:#ff9900;'>Select Upad Operator Target:</p>", unsafe_allow_html=True)
+        if operator_options:
+            upad_ops_grid = st.columns(max(len(operator_options), 1))
+            for idx_uo, uo_title in enumerate(operator_options):
+                lbl_u_state = f"✨ {uo_title}" if st.session_state.sel_u_op == uo_title else str(uo_title)
+                if upad_ops_grid[idx_uo].button(lbl_u_state, key=f"grid_upad_op_{uo_title}"):
+                    st.session_state.sel_u_op = uo_title
                     clear_all_messages()
-                    orig_idx = df_upad[df_upad.index == idx].index[0]
-                    df_upad = df_upad.drop(orig_idx).reset_index(drop=True)
+                    st.rerun()
+                    
+        st.markdown("<p style='margin-top:8px; margin-bottom:2px; color:#7cfc00;'>Payment Method Selection:</p>", unsafe_allow_html=True)
+        pm_c1, pm_c2 = st.columns(2)
+        
+        lbl_cash = "💵 CASH TRANSIT ACTIVE" if st.session_state.sel_pm == "Cash" else "Cash"
+        if pm_c1.button(lbl_cash, key="btn_pm_cash_select"):
+            st.session_state.sel_pm = "Cash"
+            clear_all_messages()
+            st.rerun()
+            
+        lbl_gpay = "📱 GPAY DIGITAL ACTIVE" if st.session_state.sel_pm == "GPay" else "GPay"
+        if pm_c2.button(lbl_gpay, key="btn_pm_gpay_select"):
+            st.session_state.sel_pm = "GPay"
+            clear_all_messages()
+            st.rerun()
+            
+        with st.form("upad_data_capture_form"):
+            upad_date = st.date_input("Advance Disbursal Date:", value=datetime.strptime(edit_upad_row["Date"], "%Y-%m-%d").date() if is_editing_upad else datetime.today().date())
+            upad_amount = st.number_input("Disbursed Amount (₹):", min_value=0.0, step=100.0, value=float(edit_upad_row.get("Amount")) if is_editing_upad else None, placeholder="Type Upad amount...")
+            upad_remark = st.text_area("Reference Note:", value=edit_upad_row.get("Remark", "") if is_editing_upad else "")
+            
+            btn_label_upad = "Update Advance Entry" if is_editing_upad else "Log Operator Advance Transaction"
+            if st.form_submit_button(btn_label_upad):
+                clear_all_messages()
+                if not st.session_state.sel_u_op or upad_amount is None:
+                    st.error("Operator Name reference details or Amount are blank!")
+                else:
+                    new_upad_row = {"Date": str(upad_date), "Operator": st.session_state.sel_u_op, "Amount": float(upad_amount), "Payment Mode": st.session_state.sel_pm, "Remark": upad_remark.strip()}
+                    if is_editing_upad:
+                        df_upad.iloc[st.session_state.edit_id] = new_upad_row
+                        cancel_edit()
+                        st.session_state.msg_upad = "✔ Advance Upad Record Updated!"
+                    else:
+                        df_upad = pd.concat([df_upad, pd.DataFrame([new_upad_row])], ignore_index=True)
+                        st.session_state.msg_upad = "✔ Advance Upad Record Registered!"
                     save_data(df_upad, OP_UPAD_FILE)
                     st.rerun()
-                st.markdown("<hr style='margin:2px 0; border-color:#21252b;' />", unsafe_allow_html=True)
+                    
+            if is_editing_upad and st.form_submit_button("Cancel Upad Edit"):
+                cancel_edit()
+                st.rerun()
+                    
+            if st.session_state.msg_upad:
+                st.markdown(f'<div class="inline-success">{st.session_state.msg_upad}</div>', unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.subheader("📊 Live Enterprise Business Statements & Auditing Logs")
+    
+    selected_view_ledger = st.radio(
+        "Choose Target Balance View Node Sheet:",
+        ["Operator Complete Accounting View", "Client Party Outstanding Receivables Balances", "Raw Industrial Processing Logs Summary"]
+    )
+    
+    if selected_view_ledger == "Operator Complete Accounting View" and (not df_work.empty or not df_upad.empty):
+        unique_active_ops = sorted(list(set(df_work["Operator"].unique()).union(set(df_upad["Operator"].unique()))))
+        if unique_active_ops:
+            filter_operator_target = st.selectbox("Select Target Auditing Operator:", unique_active_ops)
+            
+            st.markdown(f"#### Production Ledger Book: {filter_operator_target}")
+            op_production_subset = df_work[df_work["Operator"] == filter_operator_target].copy().reset_index(drop=True)
+            
+            if not op_production_subset.empty:
+                for target_idx, table_row in op_production_subset.iterrows():
+                    with st.container():
+                        cx1, cx2, cx3, cx4, cx5, cx6 = st.columns([1.5, 3.5, 2.0, 1.2, 0.9, 0.9])
+                        cx1.write(f"📅 `{table_row['Date']}`")
+                        
+                        pcs_info = f"**Total PC:** {int(table_row['Pcs'])}"
+                        if table_row['Work Type'] == "Carat":
+                            pcs_info = f"**+20 PC:** {int(table_row.get('Pcs_20_Up', 0))} | **+1 PC:** {int(table_row.get('Pcs_1_Up', 0))}"
+                            
+                        cx2.write(f"**Party:** {table_row['Party']} | **Type:** {table_row['Work Type']} | {pcs_info}")
+                        cx3.markdown(f"Op Earning: **₹{table_row['Operator Amount']:.2f}**")
+                        
+                        wa_txt = f"Work Receipt ({filter_operator_target}):\nDate: {table_row['Date']}\nType: {table_row['Work Type']}\nPcs: {table_row['Pcs']}\nEarnings: ₹{table_row['Operator Amount']}"
+                        cx4.markdown(f"<a href='https://wa.me/?text={urllib.parse.quote(wa_txt)}' target='_blank'><button style='background-color:#25D366; border:none; color:white; border-radius:4px; width:100%;'>💬 WA</button></a>", unsafe_allow_html=True)
+                        
+                        if cx5.button("✏️ Edit", key=f"edit_op_work_row_{target_idx}"):
+                            actual_df_idx = df_work[(df_work["Operator"] == filter_operator_target)].index[target_idx]
+                            st.session_state.edit_id = actual_df_idx
+                            st.session_state.edit_section = "Work"
+                            st.session_state.edit_data = table_row.to_dict()
+                            st.rerun()
+                            
+                        if cx6.button("❌ Delete", key=f"del_op_work_row_{target_idx}"):
+                            clear_all_messages()
+                            actual_df_idx = df_work[(df_work["Operator"] == filter_operator_target)].index[target_idx]
+                            df_work = df_work.drop(actual_df_idx).reset_index(drop=True)
+                            save_data(df_work, DAILY_WORK_FILE)
+                            st.rerun()
+                        st.markdown("<hr style='margin:2px 0; border-color:#21252b;' />", unsafe_allow_html=True)
+            
+            st.markdown(f"#### Balance Advance Draws History: {filter_operator_target}")
+            op_upad_subset = df_upad[df_upad["Operator"] == filter_operator_target].copy().reset_index(drop=True)
+            if not op_upad_subset.empty:
+                for target_u_idx, u_row in op_upad_subset.iterrows():
+                    with st.container():
+                        ux1, ux2, ux3, ux4, ux5 = st.columns([1.5, 3.5, 2.0, 1.0, 1.0])
+                        ux1.write(f"📅 `{u_row['Date']}`")
+                        ux2.write(f"**Mode:** {u_row['Payment Mode']} | **Note:** {u_row['Remark']}")
+                        ux3.markdown(f"Draw Amount: <span style='color:#ff5555; font-weight:bold;'>₹{u_row['Amount']:.2f}</span>", unsafe_allow_html=True)
+                        
+                        if ux4.button("✏️ Edit", key=f"edit_op_upad_row_{target_u_idx}"):
+                            actual_df_u_idx = df_upad[(df_upad["Operator"] == filter_operator_target)].index[target_u_idx]
+                            st.session_state.edit_id = actual_df_u_idx
+                            st.session_state.edit_section = "Upad"
+                            st.session_state.edit_data = u_row.to_dict()
+                            st.rerun()
+                            
+                        if ux5.button("❌ Delete", key=f"del_op_upad_row_{target_u_idx}"):
+                            clear_all_messages()
+                            actual_df_u_idx = df_upad[(df_upad["Operator"] == filter_operator_target)].index[target_u_idx]
+                            df_upad = df_upad.drop(actual_df_u_idx).reset_index(drop=True)
+                            save_data(df_upad, OP_UPAD_FILE)
+                            st.rerun()
+                        st.markdown("<hr style='margin:2px 0; border-color:#21252b;' />", unsafe_allow_html=True)
+                        
+            gross_op_credits = op_production_subset["Operator Amount"].sum() if not op_production_subset.empty else 0.0
+            gross_op_debits = op_upad_subset["Amount"].sum() if not op_upad_subset.empty else 0.0
+            net_payable_salary = gross_op_credits - gross_op_debits
+            
+            st.markdown("---")
+            stat_c1, stat_c2, stat_c3 = st.columns(3)
+            stat_c1.metric("Gross Production Value (Earnings)", f"₹{gross_op_credits:.2f}")
+            stat_c2.metric("Total Advance Drawn Matrix (Upad)", f"₹{gross_op_debits:.2f}")
+            stat_c3.metric("Net Salary Outstanding Payable Balance", f"₹{net_payable_salary:.2f}")
+            
+            if not op_production_subset.empty:
+                pdf_op_blob = generate_pdf_document(op_production_subset[["Date", "Party", "Work Type", "Pcs", "Pcs_20_Up", "Pcs_1_Up", "Carat_20_Up", "Carat_1_Up", "Operator Amount"]], f"Production Statement For {filter_operator_target}")
+                st.download_button(f"📥 Download {filter_operator_target} PDF Statement", data=pdf_op_blob, file_name=f"{filter_operator_target}_Invoice.pdf", mime="application/pdf")
+
+    elif selected_view_ledger == "Client Party Outstanding Receivables Balances" and not df_work.empty:
+        distinct_parties_logged = sorted(df_work["Party"].unique())
+        if distinct_parties_logged:
+            filter_party_target = st.selectbox("Select Target Client Billing Account Account:", distinct_parties_logged)
+            party_billings_subset = df_work[df_work["Party"] == filter_party_target].copy().reset_index(drop=True)
+            
+            for party_idx, p_row in party_billings_subset.iterrows():
+                with st.container():
+                    px1, px2, px3, px4, px5, px6 = st.columns([1.5, 3.5, 2.0, 1.2, 0.9, 0.9])
+                    px1.write(f"📅 `{p_row['Date']}`")
+                    
+                    pcs_info = f"**Pcs:** {p_row['Pcs']}"
+                    if p_row['Work Type'] == "Carat":
+                        pcs_info = f"**+20 PC:** {int(p_row.get('Pcs_20_Up', 0))} | **+1 PC:** {int(p_row.get('Pcs_1_Up', 0))}"
+                        
+                    px2.write(f"**Operator:** {p_row['Operator']} | **Profile Matrix Type:** {p_row['Work Type']} | {pcs_info}")
+                    px3.markdown(f"Receivable Amt: **₹{p_row['Party Amount']:.2f}**")
+                    
+                    wa_party_msg = f"Invoice Statement Alert ({filter_party_target}):\nDate: {p_row['Date']}\nProduction Class Type: {p_row['Work Type']}\nCalculated Total Receivable: ₹{p_row['Party Amount']}"
+                    px4.markdown(f"<a href='https://wa.me/?text={urllib.parse.quote(wa_party_msg)}' target='_blank'><button style='background-color:#25D366; border:none; color:white; border-radius:4px; width:100%;'>💬 WA</button></a>", unsafe_allow_html=True)
+                    
+                    if px5.button("✏️ Edit", key=f"edit_party_work_row_{party_idx}"):
+                        actual_df_p_idx = df_work[(df_work["Party"] == filter_party_target)].index[party_idx]
+                        st.session_state.edit_id = actual_df_p_idx
+                        st.session_state.edit_section = "Work"
+                        st.session_state.edit_data = p_row.to_dict()
+                        st.rerun()
+                        
+                    if px6.button("❌ Delete Log Record", key=f"del_party_work_row_{party_idx}"):
+                        clear_all_messages()
+                        actual_df_p_idx = df_work[(df_work["Party"] == filter_party_target)].index[party_idx]
+                        df_work = df_work.drop(actual_df_p_idx).reset_index(drop=True)
+                        save_data(df_work, DAILY_WORK_FILE)
+                        st.rerun()
+                    st.markdown("<hr style='margin:2px 0; border-color:#21252b;' />", unsafe_allow_html=True)
+            
+            st.markdown("---")
+            st.metric("Total Consolidated Account Receivables Outstanding Balance", f"₹{party_billings_subset['Party Amount'].sum():.2f}")
+            
+            pdf_pt_blob = generate_pdf_document(party_billings_subset[["Date", "Operator", "Work Type", "Pcs", "Pcs_20_Up", "Pcs_1_Up", "Carat_20_Up", "Carat_1_Up", "Party Rate", "Party Amount"]], f"Account Ledger Statement For {filter_party_target}")
+            st.download_button(f"📥 Download {filter_party_target} Statement PDF Invoice", data=pdf_pt_blob, file_name=f"Party_{filter_party_target}_Ledger.pdf", mime="application/pdf")
+
+    else:
+        st.markdown("#### Complete Global Audit Raw Matrix Logs")
+        if not df_work.empty:
+            df_work_show = df_work.sort_values(by="Date", ascending=False).reset_index(drop=True)
+            display_work_df = df_work_show.copy()
+            display_work_df.index = display_work_df.index + 1
+            st.dataframe(display_work_df)
+        else:
+            st.info("No diamond processing transactions stored inside daily registry.")
