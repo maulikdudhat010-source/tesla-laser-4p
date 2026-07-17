@@ -393,7 +393,10 @@ if app_route == "(1) Office Expense Master":
             
             out_amount = st.number_input("Paid Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else None, placeholder="Type amount directly...", key=f"off_exp_amt_{Token}")
             out_phone = st.text_input("WhatsApp Number:", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "", key=f"off_exp_ph_{Token}")
-          # --- Line 396 onwards ---
+          # ==========================================
+# LINE 396 ONWARDS (REPLACE FULL BLOCK HERE)
+# ==========================================
+
 if 'is_editing_office_purchases' in locals() and is_editing_office_purchases:
     if 'edit_office_row' in locals() and hasattr(edit_office_row, 'get'):
         default_remark = edit_office_row.get("Remark", "")
@@ -411,18 +414,28 @@ out_remark = st.text_area("Purpose / Remark:", value=default_remark)
 is_editing_office_flag = is_editing_office if 'is_editing_office' in locals() else False
 
 sub_label_exp = "Update Cash Outward" if is_editing_office_flag else "Save Cash Outward"
-# ------------------------
+
+# --- Form Submit Button and Logic ---
 if st.form_submit_button(sub_label_exp):
     clear_all_messages()
     if not out_name or out_amount is None:
         st.error("Nam aur Amount fields blank nahi chod sakte!")
     else:
-        new_log = {"Date": str(out_date), "Type": "Expense (Gaya)", "Name": out_name.strip(), "Amount": float(out_amount), "Remark": out_remark}
-        if is_editing_office:
+        new_log = {
+            "Date": str(out_date), 
+            "Type": "Expense (Gaya)", 
+            "Name": out_name.strip(), 
+            "Amount": float(out_amount),
+            "Remark": out_remark
+        }
+        
+        if 'is_editing_office' in locals() and is_editing_office:
             df_office.iloc[st.session_state.edit_id] = new_log
             cancel_edit()
             st.session_state.msg_off_exp = "✓ Entry Updated Successfully!"
         else:
+            # यहाँ आपका फैक्ट्री वाला या एल्स का बाकी कोड आएगा (अगर इसके नीचे कोई कोड था)
+            pass
                         df_office = pd.concat([df_office, pd.DataFrame([new_log])], ignore_index=True)
                         st.session_state.msg_off_exp = "✔ Expense Entry Tracked Successfully!"
                     save_data(df_office, OFFICE_FILE)
