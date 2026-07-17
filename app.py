@@ -11,7 +11,7 @@ import io
 import streamlit.components.v1 as components
 
 # ==========================================
-# 1. PAGE CONFIGURATION & STYLING (FIXED COLORS)
+# 1. PAGE CONFIGURATION & STYLING (FIXED BUTTONS & COLORS)
 # ==========================================
 st.set_page_config(page_title="Tesla Laser 4P Management Pro", page_icon="💎", layout="wide")
 
@@ -73,18 +73,28 @@ st.markdown("""
         color: #ffffff !important;
     }
     
-    /* Main Action Form Buttons */
-    button[kind="primary"], div.stButton > button:first-child {
-        background-color: #4a75a0 !important;
+    /* FIXED: ALL BUTTONS STYLE (No more white hidden boxes) */
+    button, 
+    .stButton > button, 
+    [data-testid="stFormSubmitButton"] button, 
+    [data-testid="stFormSubmitButton"] > button {
+        background-color: #2c313c !important;
         color: #ffffff !important;
         border: 2px solid #61afef !important;
+        border-radius: 8px !important;
         font-weight: bold !important;
+        padding: 8px 16px !important;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
         transition: all 0.3s ease;
+        display: inline-block;
+        width: auto;
     }
     
-    button[kind="primary"]:hover, div.stButton > button:first-child:hover {
+    /* Hover state for all buttons */
+    button:hover, 
+    .stButton > button:hover, 
+    [data-testid="stFormSubmitButton"] button:hover {
         background-color: #ff9900 !important;
         color: #000000 !important;
         border-color: #ffaa00 !important;
