@@ -459,7 +459,9 @@ elif app_route == "(2) Home Expense Master":
             
             h_in_amount = st.number_input("Amount (₹):", min_value=0.0, step=100.0, value=float(edit_home_row.get("Amount")) if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else None, placeholder="Type amount directly...")
             h_in_phone = st.text_input("Phone Reference:", value=str(edit_home_row.get("Phone", "")) if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else "")
-            h_in_remark = st.text_area("Notes:", value=edit_home_row.get("Remark", "") if (is_editing_home villages=True and edit_home_row.get("Type") == "Income (Aaya)") else "")
+            
+            # FIXED CRITICAL TYPO: Removed 'villages=True' error
+            h_in_remark = st.text_area("Notes:", value=edit_home_row.get("Remark", "") if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else "")
             
             sub_label_hi = "Update Home Inward" if is_editing_home else "Commit Home Inward Record"
             if st.form_submit_button(sub_label_hi):
