@@ -334,11 +334,10 @@ if app_route == "(1) Office Expense Master":
     with col_income:
         st.subheader("💰 Cash Inward (Paisa Aaya)")
         native_contact_picker_js("off_in")
-        with st.form("office_income_capture_form"):
+        with st.form("office_income_capture_form", clear_on_submit=True):
             in_date = st.date_input("Date:", value=datetime.strptime(edit_office_row["Date"], "%Y-%m-%d").date() if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else datetime.today().date())
             in_name = st.text_input("Source Name / Party:", value=edit_office_row.get("Name", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "")
             
-            # Value is None if not editing so it stays empty (no 0.00 clear headache)
             in_amount = st.number_input("Collected Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else None, placeholder="Type amount directly...")
             in_phone = st.text_input("WhatsApp Number (10 Digits):", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "")
             in_remark = st.text_area("Entry Remarks / Context:", value=edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "")
@@ -370,12 +369,12 @@ if app_route == "(1) Office Expense Master":
     with col_expense:
         st.subheader("💸 Cash Outward (Paisa Gaya)")
         native_contact_picker_js("off_exp")
-        with st.form("office_expense_capture_form"):
+        with st.form("office_expense_capture_form", clear_on_submit=True):
             out_date = st.date_input("Date:", value=datetime.strptime(edit_office_row["Date"], "%Y-%m-%d").date() if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else datetime.today().date())
             out_name = st.text_input("Recipient / Vendor Name:", value=edit_office_row.get("Name", "") if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "")
             
             out_amount = st.number_input("Paid Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else None, placeholder="Type amount directly...")
-            out_phone = st.text_input("WhatsApp Number:", value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "")
+            out_phone = st.text_input("WhatsApp Number:", value=str(edit_office_row.get("Phone", "")) if (is_editing_office villages=True and edit_office_row.get("Type") == "Expense (Gaya)") else "")
             out_remark = st.text_area("Purpose / Remark:", value=edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row.get("Type") == "Expense (Gaya)") else "")
             
             sub_label_exp = "Update Cash Outward" if is_editing_office else "Save Cash Outward"
@@ -453,14 +452,12 @@ elif app_route == "(2) Home Expense Master":
     
     with col_hm_inc:
         st.subheader("💰 Inward Streams (Ghar me Paisa Aaya)")
-        with st.form("home_income_form"):
+        with st.form("home_income_form", clear_on_submit=True):
             h_in_date = st.date_input("Date:", value=datetime.strptime(edit_home_row["Date"], "%Y-%m-%d").date() if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else datetime.today().date())
             h_in_name = st.text_input("Source Name:", value=edit_home_row.get("Name", "") if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else "")
             
             h_in_amount = st.number_input("Amount (₹):", min_value=0.0, step=100.0, value=float(edit_home_row.get("Amount")) if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else None, placeholder="Type amount directly...")
             h_in_phone = st.text_input("Phone Reference:", value=str(edit_home_row.get("Phone", "")) if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else "")
-            
-            # FIXED CRITICAL TYPO: Removed 'villages=True' error
             h_in_remark = st.text_area("Notes:", value=edit_home_row.get("Remark", "") if (is_editing_home and edit_home_row.get("Type") == "Income (Aaya)") else "")
             
             sub_label_hi = "Update Home Inward" if is_editing_home else "Commit Home Inward Record"
@@ -489,7 +486,7 @@ elif app_route == "(2) Home Expense Master":
 
     with col_hm_exp:
         st.subheader("💸 Household Expenses (Kharcha)")
-        with st.form("home_expense_form"):
+        with st.form("home_expense_form", clear_on_submit=True):
             h_out_date = st.date_input("Date:", value=datetime.strptime(edit_home_row["Date"], "%Y-%m-%d").date() if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else datetime.today().date())
             h_out_name = st.text_input("Expense Title / Context:", value=edit_home_row.get("Name", "") if (is_editing_home and edit_home_row.get("Type") == "Expense (Gaya)") else "")
             
@@ -560,7 +557,7 @@ else:
     m_col1, m_col2 = st.columns(2)
     with m_col1:
         st.markdown("### 🛠 Operator Registration Node")
-        with st.form("master_operator_management_form"):
+        with st.form("master_operator_management_form", clear_on_submit=True):
             input_op_name = st.text_input("Enter New Operator Name:")
             execution_method = st.selectbox("Action Vector:", ["Register/Add", "Unregister/Remove"])
             
@@ -580,7 +577,7 @@ else:
                         
     with m_col2:
         st.markdown("### 🏢 Client Party Registration Node")
-        with st.form("master_party_management_form"):
+        with st.form("master_party_management_form", clear_on_submit=True):
             input_pt_name = st.text_input("Enter New Business Party Name:")
             execution_method_pt = st.selectbox("Action Vector:", ["Register/Add", "Unregister/Remove"])
             
@@ -615,7 +612,6 @@ else:
             st.session_state.sel_op = edit_work_row.get("Operator", "")
             st.session_state.sel_wt = edit_work_row.get("Work Type", "PC")
         
-        # 1. Operator Select Panel
         st.markdown("<p style='margin-bottom:2px; color:#ff9900;'>Select Working Operator:</p>", unsafe_allow_html=True)
         if operator_options:
             op_grid_cols = st.columns(max(len(operator_options), 1))
@@ -630,7 +626,6 @@ else:
         else:
             st.error("Upar master register me operator add karein pehle!")
             
-        # 2. Category selection
         st.markdown("<p style='margin-top:8px; margin-bottom:2px; color:#61afef;'>Select Active Work Parameters Class:</p>", unsafe_allow_html=True)
         wt_c1, wt_c2, wt_c3 = st.columns(3)
         
@@ -654,8 +649,7 @@ else:
 
         st.info(f"⚡ Current Configuration -> Operator: **{st.session_state.sel_op}** | Batch Profile Mode: **{st.session_state.sel_wt}**")
         
-        # Production entry form
-        with st.form("production_main_data_capture_form"):
+        with st.form("production_main_data_capture_form", clear_on_submit=True):
             prod_date = st.date_input("Processing Entry Date:", value=datetime.strptime(edit_work_row["Date"], "%Y-%m-%d").date() if is_editing_work else datetime.today().date())
             
             default_party_idx = 0
@@ -670,12 +664,9 @@ else:
             carat_1_weight = 0.0
             choki_count = 0
             
-            # Applying locked default values and placeholder configs to prevent typing friction
             if st.session_state.sel_wt == "PC":
-                # Int value using None default value so user gets blank box to type straightaway
                 pcs_count = st.number_input("Total Processed PC Count:", min_value=0, value=int(edit_work_row.get("Pcs")) if is_editing_work else None, placeholder="Type count...", step=1)
                 
-                # Locked value loaded as default. If editing, we use edit row value.
                 default_op_rate_pc = float(edit_work_row.get("Operator Rate", st.session_state.locked_op_rate_pc)) if is_editing_work else st.session_state.locked_op_rate_pc
                 default_party_rate_pc = float(edit_work_row.get("Party Rate", st.session_state.locked_party_rate_pc)) if is_editing_work else st.session_state.locked_party_rate_pc
                 
@@ -694,17 +685,14 @@ else:
                 wt_col1, wt_col2 = st.columns(2)
                 with wt_col1:
                     carat_20_weight = st.number_input("+20 Up Raw Carat Weight Value:", min_value=0.0, value=float(edit_work_row.get("Carat_20_Up")) if is_editing_work else None, step=0.01, format="%.2f", placeholder="Type weight...")
-                    
                     default_op_rate_20_up = float(edit_work_row.get("Op_Rate_20_Up", st.session_state.locked_op_rate_20_up)) if is_editing_work else st.session_state.locked_op_rate_20_up
                     op_rate_20_up = st.number_input("+20 Up Operator Pay Rate:", min_value=0.0, value=default_op_rate_20_up, step=0.1)
                 with wt_col2:
                     carat_1_weight = st.number_input("+1 Carat Raw Weight Value:", min_value=0.0, value=float(edit_work_row.get("Carat_1_Up")) if is_editing_work else None, step=0.01, format="%.2f", placeholder="Type weight...")
-                    
                     default_op_rate_1_up = float(edit_work_row.get("Op_Rate_1_Up", st.session_state.locked_op_rate_1_up)) if is_editing_work else st.session_state.locked_op_rate_1_up
                     op_rate_1_up = st.number_input("+1 Carat Operator Pay Rate:", min_value=0.0, value=default_op_rate_1_up, step=0.1)
                     
                 st.markdown("<p style='color:#7cfc00; font-weight:bold; margin-bottom: 2px;'>Collective Consolidated Party Evaluation:</p>", unsafe_allow_html=True)
-                
                 default_party_rate_carat = float(edit_work_row.get("Party Rate", st.session_state.locked_party_rate_carat)) if is_editing_work else st.session_state.locked_party_rate_carat
                 unified_party_rate = st.number_input("Consolidated Party Carat Standard Rate:", min_value=0.0, value=default_party_rate_carat, step=0.1)
                 
@@ -723,7 +711,6 @@ else:
                 if not st.session_state.sel_op or not prod_party:
                     st.error("Operator aur Party selection absolute mandatory hai!")
                 else:
-                    # Sanitize None values to 0 before saving
                     safe_pcs_count = pcs_count if pcs_count is not None else 0
                     safe_pcs_20_up = pcs_20_up if pcs_20_up is not None else 0
                     safe_pcs_1_up = pcs_1_up if pcs_1_up is not None else 0
@@ -803,7 +790,7 @@ else:
             clear_all_messages()
             st.rerun()
             
-        with st.form("upad_data_capture_form"):
+        with st.form("upad_data_capture_form", clear_on_submit=True):
             upad_date = st.date_input("Advance Disbursal Date:", value=datetime.strptime(edit_upad_row["Date"], "%Y-%m-%d").date() if is_editing_upad else datetime.today().date())
             upad_amount = st.number_input("Disbursed Amount (₹):", min_value=0.0, step=100.0, value=float(edit_upad_row.get("Amount")) if is_editing_upad else None, placeholder="Type Upad amount...")
             upad_remark = st.text_area("Reference Note:", value=edit_upad_row.get("Remark", "") if is_editing_upad else "")
