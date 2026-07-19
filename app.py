@@ -615,7 +615,7 @@ elif app_route == "(2) Home Expense Master":
 # ==========================================
 # 9. SECTION 3: OPERATOR & PARTY DIAMOND DESK
 # ==========================================
-else:
+elif app_route == "(3) Operator Ledger & Production Desk":
     st.header("👷 Diamond Laser 4P Production Terminal")
     
     operator_options = df_master[df_master["Type"] == "Operator"]["Name"].tolist()
