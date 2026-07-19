@@ -511,9 +511,9 @@ if app_route == "(1) Office Expense Master":
 # ==========================================
 elif app_route == "(2) Home Expense Master":
     st.header("🏡 Home Personal Accounting Desk")
- if st.button("⬅ Back To Main Dashboard", key="back_home"):
-    go_dashboard()
-    st.rerun()   
+     if st.button("⬅ Back To Main Dashboard", key="back_home"):
+        go_dashboard()
+        st.rerun()   
     
     is_editing_home = (st.session_state.edit_section == "Home" and st.session_state.edit_id is not None)
     edit_home_row = st.session_state.edit_data if is_editing_home else {}
