@@ -164,8 +164,8 @@ if 'form_reset_token' not in st.session_state:
 def trigger_form_reset():
     st.session_state.form_reset_token += 1
 
-
 def force_global_reset():
+    
     st.query_params.clear()
     
     keys_to_keep = ["logged_in", "user_role", "username", "main_nav", "fix_value", "fixed_rates"]
