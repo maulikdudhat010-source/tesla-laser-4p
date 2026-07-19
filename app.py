@@ -280,13 +280,41 @@ def native_contact_picker_js(identifier_tag):
 st.sidebar.markdown("<h2 style='color:#61afef; text-align: center; margin-bottom:0;'>💎 Tesla Laser Pro</h2>", unsafe_allow_html=True)
 st.sidebar.markdown("<p style='text-align: center; font-size:11px; color:#ff9900;'>Industrial 4P Engine Panel</p>", unsafe_allow_html=True)
 st.sidebar.markdown("---")
+# ==========================================
+# MAIN DASHBOARD NAVIGATION
+# ==========================================
 
-app_route = st.sidebar.radio(
-    "Navigation System Menu:",
-    ["(1) Office Expense Master", "(2) Home Expense Master", "(3) Operator Ledger & Production Desk"],
-    on_change=clear_all_messages
-)
+if "page" not in st.session_state:
+    st.session_state.page = "dashboard"
 
+def open_page(page_name):
+    clear_all_messages()
+    st.session_state.page = page_name
+
+def go_dashboard():
+    clear_all_messages()
+    st.session_state.page = "dashboard"
+# app_route = st.sidebar.radio(
+#    "Navigation System Menu:",
+#   ["(1) Office Expense Master", "(2) Home Expense Master", "(3) Operator Ledger & Production Desk"],
+#   on_change=clear_all_messages
+# )
+
+# ==========================================
+# DASHBOARD ROUTING
+# ==========================================
+
+if st.session_state.page == "dashboard":
+    app_route = "dashboard"
+
+elif st.session_state.page == "office":
+    app_route = "(1) Office Expense Master"
+
+elif st.session_state.page == "home":
+    app_route = "(2) Home Expense Master"
+
+elif st.session_state.page == "production":
+    app_route = "(3) Operator Ledger & Production Desk"
 if app_route == "(1) Office Expense Master":
     st.sidebar.markdown("<div style='background-color:#1c2026; padding:10px; border-radius:5px; border-left:4px solid #ff9900; text-align:center; font-weight:bold;'>📍 Location: Office Desk Active</div>", unsafe_allow_html=True)
 elif app_route == "(2) Home Expense Master":
@@ -323,7 +351,35 @@ with st.sidebar.expander("⚙️ Configure Fixed Rates", expanded=True):
         st.session_state.locked_op_rate_choki = locked_op_choki
         st.session_state.locked_party_rate_choki = locked_party_choki
         st.toast("✅ Sabhi Rates Lock Kar Diye Gaye Hain!", icon="🔑")
+# ==========================================
+# MAIN DASHBOARD
+# ==========================================
 
+if app_route == "dashboard":
+
+    st.title("💎 Tesla Laser 4P Management Pro")
+
+    st.markdown("## Main Dashboard")
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.subheader("🏢 Office")
+        if st.button("Open Office", use_container_width=True):
+            open_page("office")
+            st.rerun()
+
+    with c2:
+        st.subheader("🏠 Home")
+        if st.button("Open Home", use_container_width=True):
+            open_page("home")
+            st.rerun()
+
+    with c3:
+        st.subheader("👷 Production")
+        if st.button("Open Production", use_container_width=True):
+            open_page("production")
+            st.rerun()
 # ==========================================
 # 7. SECTION 1: OFFICE EXPENSE ACCOUNTING
 # ==========================================
