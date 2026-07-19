@@ -385,9 +385,11 @@ if app_route == "dashboard":
 # ==========================================
 if app_route == "(1) Office Expense Master":
     st.header("🏢 Office Records & Accounting Ledger")
+    
     if st.button("⬅ Back To Main Dashboard", key="back_office"):
     go_dashboard()
     st.rerun()
+    
     is_editing_office = (st.session_state.edit_section == "Office" and st.session_state.edit_id is not None)
     edit_office_row = st.session_state.edit_data if is_editing_office else {}
     Token = st.session_state.form_reset_token
