@@ -342,9 +342,8 @@ if app_route == "(1) Office Expense Master":
         with st.form("office_income_capture_form"):
             in_date = st.date_input("Date:", value=datetime.strptime(edit_office_row["Date"], "%Y-%m-%d").date() if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else datetime.today().date(), key=f"off_in_date_{Token}")
             in_name = st.text_input("Source Name / Party:", value=edit_office_row.get("Name", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_name_{Token}")
-            
             in_amount = st.number_input("Collected Amount (₹):", min_value=0.0, step=50.0, value=float(edit_office_row.get("Amount")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else None, placeholder="Type amount directly...", key=f"off_in_amt_{Token}")
-            in_phone = st.text_input("WhatsApp Number (10 Digits):", value=str(edit_office_row.get("Phone", "")) if (is_editing_office villages and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_ph_{Token}")
+            in_phone = st.text_input( "WhatsApp Number (10 Digits):",  value=str(edit_office_row.get("Phone", "")) if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "",  key=f"off_in_ph_{Token}")
             in_remark = st.text_area("Entry Remarks / Context:", value=edit_office_row.get("Remark", "") if (is_editing_office and edit_office_row.get("Type") == "Income (Aaya)") else "", key=f"off_in_rem_{Token}")
             
             sub_label = "Update Cash Inward" if is_editing_office else "Save Cash Inward"
