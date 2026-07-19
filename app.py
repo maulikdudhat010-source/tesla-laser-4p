@@ -512,7 +512,7 @@ if app_route == "(1) Office Expense Master":
 elif app_route == "(2) Home Expense Master":
     st.header("🏡 Home Personal Accounting Desk")
     
-     if st.button("⬅ Back To Main Dashboard", key="back_home"):
+    if st.button("⬅ Back To Main Dashboard", key="back_home"):
         go_dashboard()
         st.rerun()   
     
