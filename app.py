@@ -345,7 +345,7 @@ with st.sidebar.expander("⚙️ Configure Fixed Rates", expanded=False):
 # ==========================================
 top_nav_col1, top_nav_col2 = st.columns([8, 2])
 with top_nav_col2:
-    if st.button("🏠 Main Dashboard Screen", key="top_dashboard_universal_home_btn", use_container_width=True):
+    if # st.button("🏠 Main Dashboard Screen", key="top_dashboard_universal_home_btn", use_container_width=True):
         force_global_reset()
 
 # ==========================================
